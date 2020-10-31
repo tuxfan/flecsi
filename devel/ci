@@ -97,7 +97,8 @@ RUN \
   . .spack-upstream/share/spack/setup-env.sh \
   && \
   spack fetch --dependencies flecsi@devel backend=legion \
-    +hdf5 +graphviz \
+    +hdf5 \
+    +graphviz \
     +kokkos \
     ^mpich \
   && \
