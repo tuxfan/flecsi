@@ -25,20 +25,26 @@
 namespace flecsi {
 namespace topo {
 
-//----------------------------------------------------------------------------//
-// Mesh topology.
-//----------------------------------------------------------------------------//
+template<typename Policy>
+struct set : set_base, with_meta<Policy> {
 
-/*!
-  @ingroup topology
- */
+  template<std::size_t>
+  struct access;
 
-template<typename POLICY_TYPE>
-struct set : set_base_t, data::reference_base {}; // struct set
+  set(coloring const & c)
+    : with_meta<Policy>(c.colors) {
+  }
+
+}; // struct set
+
+template<typename Policy>
+template<std::size_t Privileges>
+struct set<Policy>::access {
+}; // struct set<Policy>::access
 
 template<>
 struct detail::base<set> {
-  using type = set_base_t;
+  using type = set_base;
 };
 
 } // namespace topo
