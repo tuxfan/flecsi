@@ -26,7 +26,10 @@
 #endif
 
 #include <iostream>
+#include <map>
 #include <sstream>
+#include <unordered_set>
+#include <vector>
 
 #include <unistd.h>
 
@@ -104,6 +107,89 @@ add_output_stream(std::string const & label,
   bool colorize = false) {
   state::instance().config_stream().add_buffer(label, stream, colorize);
 } // add_output_stream
+
+/*
+  Convenience functions for output of some standard container types.
+  Use at your own risk.
+ */
+
+template<typename T>
+auto
+insert(T const & t) {
+  std::stringstream ss;
+  ss << t;
+  return ss.str();
+} //
+
+template<template<typename, typename> typename C,
+  typename V,
+  typename A = std::allocator<V>>
+auto
+insert(C<V, A> const & c, std::string label = "container") {
+  std::stringstream ss;
+
+  if(label != "")
+    ss << label << ":" << std::endl;
+
+  std::size_t i{0};
+  ss << " ";
+  for(auto e : c) {
+    if constexpr(std::is_trivial<V>::value) {
+      ss << e << " ";
+    }
+    else {
+      ss << i++ << ":\n  " << insert(e, "") << std::endl;
+    } // if
+  } // for
+  return ss.str();
+}
+
+template<typename K, typename V>
+auto
+insert(std::map<K, V> const & m, std::string label = "map") {
+  std::stringstream ss;
+
+  if(label != "")
+    ss << label << ":" << std::endl;
+
+  for(auto i : m) {
+    if constexpr(std::is_trivial<V>::value) {
+      ss << "(" << i.first << "," << i.second << ") ";
+    }
+    else {
+      ss << i.first << ": [" << insert(i.second, "") << "]" << std::endl;
+    } // if
+  } // for
+  return ss.str();
+}
+
+template<typename K>
+auto
+insert(std::unordered_set<K> const & s, std::string label = "unordered set") {
+  std::stringstream ss;
+
+  if(label != "")
+    ss << label << ":" << std::endl;
+
+  if constexpr(std::is_trivial<K>::value) {
+    std::size_t i{0};
+    ss << "{ ";
+    for(auto e : s) {
+      ss << e;
+      if(i++ != s.size() - 1)
+        ss << ", ";
+    } // for
+    ss << " }";
+  }
+  else {
+    std::size_t i{0};
+    for(auto e : s) {
+      ss << i++ << ":\n  " << insert(e, "") << std::endl;
+    } // for
+  } // if
+
+  return ss.str();
+}
 
 } // namespace log
 } // namespace flecsi
@@ -275,6 +361,32 @@ struct devel_guard {
 
 inline void
 add_output_stream(std::string const &, std::ostream &, bool = false) {}
+
+template<typename T>
+auto
+insert(T const &) {
+  return "";
+}
+
+template<template<typename, typename> typename C,
+  typename V,
+  typename A = std::allocator<V>>
+auto
+insert(C<V, A> const &, std::string) {
+  return "";
+}
+
+template<typename K, typename V>
+auto
+insert(std::map<K, V> const &, std::string) {
+  return "";
+}
+
+template<typename K>
+auto
+insert(std::unordered_set<K> const &, std::string) {
+  return "";
+}
 
 } // namespace log
 } // namespace flecsi

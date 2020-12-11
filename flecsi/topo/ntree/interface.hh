@@ -94,6 +94,7 @@ struct ntree : ntree_base {
         task<set_dests>,
         task<set_ptrs>,
         util::constant<tree_data>()) {}
+
   // Ntree mandatory fields ---------------------------------------------------
 
   // Entities fields
