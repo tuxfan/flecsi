@@ -1,16 +1,8 @@
 #------------------------------------------------------------------------------#
-# FleCSI CI Configuration for CentOS 8
+# FleCSI CI Configuration for Fedora 32
 #------------------------------------------------------------------------------#
 
-FROM centos:8
-
-#------------------------------------------------------------------------------#
-# Install and configure Extra Packages for Enterprise Linux
-#------------------------------------------------------------------------------#
-
-RUN dnf install -y epel-release 'dnf-command(config-manager)'
-
-RUN dnf config-manager --set-enabled powertools
+FROM fedora:33
 
 #------------------------------------------------------------------------------#
 # Install basic linux requirements
@@ -20,20 +12,28 @@ RUN dnf update -y && dnf install -y \
   ccache \
   clang \
   cmake \
+  curl \
   doxygen \
+  emacs-color-theme \
+  file \
+  findutils \
   flex \
-  gcc-toolset-9 \
+  gcc \
+  gcc-c++ \
+  gcc-gfortran \
   git \
   lbzip2 \
   make \
   passwd \
   patch \
   python3 \
+  python3-pip \
   rsync \
-  sudo \
   vim-enhanced \
   wget \
-  which
+  which \
+  unzip \
+  xz
 
 #------------------------------------------------------------------------------#
 # Add flecsi user
@@ -50,12 +50,6 @@ RUN \
   echo "syntax on" > .vimrc && \
   echo "set background=dark" >> .vimrc && \
   echo "highlight Comment cterm=italic" >> .vimrc
-
-#------------------------------------------------------------------------------#
-# Setup path for gcc 9
-#------------------------------------------------------------------------------#
-
-ENV PATH /opt/rh/gcc-toolset-9/root/usr/bin:$PATH
 
 #------------------------------------------------------------------------------#
 # Capture version information

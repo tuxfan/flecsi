@@ -45,6 +45,7 @@ list(APPEND BASE_IMAGES
   fedora-30
   fedora-31
   fedora-32
+  fedora-33
   ubuntu-20.04
   clearlinux
 )

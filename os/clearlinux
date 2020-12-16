@@ -12,8 +12,6 @@ RUN swupd bundle-add \
   c-basic \
   ccache \
   curl \
-  devpkg-graphviz \
-  devpkg-ncurses \
   doxygen \
   emacs \
   file \
@@ -85,7 +83,6 @@ ENV LD_LIBRARY_PATH /opt/gnu/9.3.0/lib:/opt/gnu/9.3.0/lib64:$LD_LIBRARY_PATH
 # Capture version information
 #------------------------------------------------------------------------------#
 
-RUN ncurses6-config --version | sed 's,\.\([^.]*\)$,,g' > .ncurses_version
 RUN gcc -v 2>&1 | grep version | awk '{ print $3 }' > .gnu_version
 
 #------------------------------------------------------------------------------#

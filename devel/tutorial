@@ -9,14 +9,24 @@ RUN . /home/flecsi/.spack/share/spack/setup-env.sh && \
   spack repo add .flecsi/spack-repo
 
 RUN . /home/flecsi/.spack/share/spack/setup-env.sh && \
-  spack install flecsi@devel backend=legion +flog +graphviz +hdf5 ^mpich
+  spack install flecsi@devel backend=legion \
+    +flog \
+    +graphviz \
+    +hdf5 \
+    +kokkos \
+    ^mpich
 
 RUN . /home/flecsi/.spack/share/spack/setup-env.sh && \
   spack env create flecsi
 
 RUN . /home/flecsi/.spack/share/spack/setup-env.sh && \
   spack env activate flecsi && \
-  spack install flecsi@devel backend=legion +flog +graphviz +hdf5 ^mpich
+  spack install flecsi@devel backend=legion \
+    +flog \
+    +graphviz \
+    +hdf5 \
+    +kokkos \
+    ^mpich
 
 RUN cp -r .flecsi/tutorial .
 

@@ -43,10 +43,8 @@ ARG SUBDIR
 ADD clang_fortran.py ./.clang_fortran.py
 
 RUN export GNU_VERSION=`cat .gnu_version` && \
-  export NCURSES_VERSION=`cat .ncurses_version` && \
   cat .images/${SUBDIR}/spack/packages.yaml | \
-    sed "s,GNU_VERSION,${GNU_VERSION},g" | \
-    sed "s,NCURSES_VERSION,${NCURSES_VERSION},g" > \
+    sed "s,GNU_VERSION,${GNU_VERSION},g" > \
     .spack-upstream/etc/spack/packages.yaml
 
 RUN . .spack-upstream/share/spack/setup-env.sh && \
@@ -63,10 +61,8 @@ RUN export GNU_VERSION=`cat .gnu_version` && \
 RUN rm -rf ~/.spack/linux/compilers.yaml
 
 RUN export GNU_VERSION=`cat .gnu_version` && \
-  export NCURSES_VERSION=`cat .ncurses_version` && \
   cat .images/${SUBDIR}/spack/packages.yaml | \
-    sed "s,GNU_VERSION,${GNU_VERSION},g" | \
-    sed "s,NCURSES_VERSION,${NCURSES_VERSION},g" > \
+    sed "s,GNU_VERSION,${GNU_VERSION},g" > \
     .spack/etc/spack/packages.yaml
 
 RUN cp .images/${SUBDIR}/spack/upstreams.yaml .spack/etc/spack
@@ -79,12 +75,14 @@ RUN \
   . .spack-upstream/share/spack/setup-env.sh \
   && \
   spack fetch --dependencies flecsi@devel backend=legion \
+    +graphviz \
     +hdf5 \
     +kokkos  \
     +debug_backend \
     ^mpich \
   && \
   spack install --only dependencies flecsi@devel backend=legion \
+    +graphviz \
     +hdf5 \
     +kokkos \
     build_type=Debug \
@@ -95,11 +93,13 @@ RUN \
   . .spack-upstream/share/spack/setup-env.sh \
   && \
   spack fetch --dependencies flecsi@devel backend=legion \
+    +graphviz \
     +hdf5 \
     +kokkos \
     ^mpich \
   && \
   spack install --only dependencies flecsi@devel backend=legion \
+    +graphviz \
     +hdf5 \
     +kokkos \
     build_type=Release \
@@ -113,12 +113,14 @@ RUN \
   . .spack-upstream/share/spack/setup-env.sh \
   && \
   spack fetch --dependencies flecsi@devel backend=legion \
+    +graphviz \
     +hdf5 \
     +kokkos \
     +debug_backend \
     ^openmpi \
   && \
   spack install --only dependencies flecsi@devel backend=legion \
+    +graphviz \
     +hdf5 \
     +kokkos \
     build_type=Release \
@@ -129,11 +131,13 @@ RUN \
   . .spack-upstream/share/spack/setup-env.sh \
   && \
   spack fetch --dependencies flecsi@devel backend=legion \
+    +graphviz \
     +hdf5 \
     +kokkos \
     ^openmpi \
   && \
   spack install --only dependencies flecsi@devel backend=legion \
+    +graphviz \
     +hdf5 \
     +kokkos \
     build_type=Release \
