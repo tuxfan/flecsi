@@ -31,10 +31,6 @@ class Flecsi(CMakePackage):
             values=('legion', 'mpi', 'hpx'),
             description='Distributed-Memory Backend', multi=False)
 
-    variant('build_type', default='Release',
-            values=('Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel'),
-            description='Build Type', multi=False)
-
     variant('flog', default=False,
             description='Enable FLOG Logging Utility')
 
@@ -54,9 +50,6 @@ class Flecsi(CMakePackage):
             description='Enable Unit Tests (Requires +flog)')
 
     # Spack-specific variants
-
-    variant('debug_backend', default=False,
-            description='Build Backend with Debug Mode')
 
     variant('shared', default=True,
             description='Build Shared Libraries')
@@ -92,15 +85,6 @@ class Flecsi(CMakePackage):
     depends_on('legion+hdf5',when='backend=legion +hdf5')
     depends_on('hdf5@1.10.7:',when='backend=legion +hdf5')
 
-    depends_on('legion build_type=Debug',
-        when='backend=legion +debug_backend +hdf5')
-    depends_on('legion build_type=Debug',
-        when='backend=legion +debug_backend ~hdf5')
-    depends_on('legion build_type=Release',
-        when='backend=legion ~debug_backend +hdf5')
-    depends_on('legion build_type=Release',
-        when='backend=legion ~debug_backend ~hdf5')
-
     # Metis
 
     depends_on('metis@5.1.0:')
@@ -116,12 +100,6 @@ class Flecsi(CMakePackage):
 
     depends_on('hpx@1.3.0 cxxstd=17 malloc=system',when='backend=hpx')
 
-    depends_on('hpx@1.3.0 cxxstd=17 malloc=system build_type=Debug',
-        when='backend=hpx +debug_backend')
-    depends_on('hpx@1.3.0 cxxstd=17 malloc=system build_type=Release',
-        when='backend=hpx ~debug_backend')
-
-
     #--------------------------------------------------------------------------#
     # Conflicts
     #--------------------------------------------------------------------------#
@@ -136,10 +114,7 @@ class Flecsi(CMakePackage):
         spec = self.spec
         options = []
 
-        options.append('-DCMAKE_BUILD_TYPE=' +
-            spec.variants['build_type'].value)
-
-        options.append('-DFLECSI_RUNTIME_MODEL=' +
+        options.append('-DFLECSI_RUNTIME_MODEL=%s' %
             spec.variants['backend'].value)
 
         if ('+flog' in spec):

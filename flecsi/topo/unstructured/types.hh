@@ -162,12 +162,6 @@ struct unstructured_base {
     std::vector<std::size_t> idx_entities;
 
     /*
-      The local allocation size for each index space
-     */
-
-    std::vector<std::size_t> idx_allocs;
-
-    /*
       The local coloring information for each index space.
 
       The coloring information is expressed in the mesh index space,

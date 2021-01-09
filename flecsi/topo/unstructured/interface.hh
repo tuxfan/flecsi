@@ -70,18 +70,11 @@ struct unstructured : unstructured_base,
 #endif
   }
 
-  template<typename Type,
-    data::layout Layout,
-    typename Topo,
-    typename Topo::index_space Space>
-  void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
-    plan_.template get<Space>().issue_copy(f.fid());
-  }
-
   static inline const connect_t<Policy> connect_;
   static inline const field<util::id>::definition<array<Policy>> special_field;
 
   util::key_array<repartitioned, index_spaces> part_;
+  util::key_array<data::copy_plan, index_spaces> plan_;
   lists<Policy> special_;
 
   std::size_t colors() const {
@@ -95,6 +88,14 @@ struct unstructured : unstructured_base,
   template<index_space S>
   const data::partition & get_partition(field_id_t) const {
     return part_.template get<S>();
+  }
+
+  template<typename Type,
+    data::layout Layout,
+    typename Topo,
+    typename Topo::index_space Space>
+  void ghost_copy(data::field_reference<Type, Layout, Topo, Space> const & f) {
+    plan_.template get<Space>().issue_copy(f.fid());
   }
 
 private:
