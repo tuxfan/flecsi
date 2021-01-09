@@ -950,25 +950,6 @@ inline std::vector<ftui::index_coloring> vertices = {
   },
 };
 
-std::vector<std::vector<std::size_t>> idx_allocs = {
-  {/* color 0 */
-    cells[0].owned.size() + cells[0].ghosts.size(),
-    vertices[0].owned.size() + vertices[0].ghosts.size()
-  },
-  {/* color 1 */
-    cells[1].owned.size() + cells[1].ghosts.size(),
-    vertices[1].owned.size() + vertices[1].ghosts.size()
-  },
-  {/* color 2 */
-    cells[2].owned.size() + cells[2].ghosts.size(),
-    vertices[2].owned.size() + vertices[2].ghosts.size()
-  },
-  {/* color 3 */
-    cells[3].owned.size() + cells[3].ghosts.size(),
-    vertices[3].owned.size() + vertices[3].ghosts.size()
-  }
-};
-
 std::vector<std::vector<ftui::index_coloring>> idx_colorings = {
   {/* color 0 */
     cells[0],

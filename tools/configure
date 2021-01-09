@@ -23,7 +23,7 @@ runtime=legion
 cmake_args=""
 
 warn="-Wall -W -Werror -Wno-parentheses"
-SCRIPT_BUILD_TYPE=debug
+SCRIPT_BUILD_TYPE=Debug
 SCRIPT_CXX_COMPILER=clang++
 SCRIPT_CXX_FLAGS="-fcolor-diagnostics $warn"
 SCRIPT_C_COMPILER=clang
@@ -59,14 +59,14 @@ do
 			cmake_mode=ccmake
 		;;
     --user|-u)
-      SCRIPT_BUILD_TYPE=release
+      SCRIPT_BUILD_TYPE=Release
       SCRIPT_ENABLE_FLOG="ON"
       SCRIPT_FLOG_ENABLE_DEVELOPER_MODE="OFF"
       SCRIPT_ENABLE_UNIT_TESTS="OFF"
       SCRIPT_ENABLE_DOCUMENTATION="OFF"
 		;;
     --tutorial|-t)
-      SCRIPT_BUILD_TYPE=release
+      SCRIPT_BUILD_TYPE=Release
       SCRIPT_ENABLE_FLOG="ON"
       SCRIPT_FLOG_ENABLE_DEVELOPER_MODE="OFF"
       SCRIPT_ENABLE_UNIT_TESTS="OFF"

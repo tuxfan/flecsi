@@ -321,6 +321,7 @@ closure(Definition const & md,
           } // for
         } // for
       } // for
+
       wkset.at(p.first).clear();
     } // for
 
@@ -339,8 +340,8 @@ closure(Definition const & md,
     std::vector<std::vector<std::pair<std::size_t, std::set<std::size_t>>>>
       reqs(size);
     {
-      auto requested =
-        util::mpi::all_to_allv([&requests](int r, int) { return requests[r]; });
+      auto requested = util::mpi::all_to_allv(
+        [&requests](int r, int) { return requests[r]; }, comm);
 
       /*
         Fulfill naive-owner requests with migrated owners.
@@ -359,8 +360,8 @@ closure(Definition const & md,
         } // for
       } // scope
 
-      auto fulfilled =
-        util::mpi::all_to_allv([&fulfills](int r, int) { return fulfills[r]; });
+      auto fulfilled = util::mpi::all_to_allv(
+        [&fulfills](int r, int) { return fulfills[r]; }, comm);
 
       /*
         Request entity information from migrated owners.
@@ -375,7 +376,7 @@ closure(Definition const & md,
     } // scope
 
     auto requested =
-      util::mpi::all_to_allv([&reqs](int r, int) { return reqs[r]; });
+      util::mpi::all_to_allv([&reqs](int r, int) { return reqs[r]; }, comm);
 
     /*
       Keep track of dependent colors for requested entities.
@@ -433,8 +434,7 @@ closure(Definition const & md,
   std::map<std::size_t, unstructured_base::coloring> colorings;
 
   for(auto p : primaries) {
-    colorings[p.first].idx_allocs.resize(1 + Policy::auxiliary_colorings);
-    colorings.at(p.first).idx_colorings.resize(1 + Policy::auxiliary_colorings);
+    colorings[p.first].idx_colorings.resize(1 + Policy::auxiliary_colorings);
 
     auto & primary =
       colorings.at(p.first).idx_colorings[Policy::primary::index_space];
@@ -484,6 +484,16 @@ closure(Definition const & md,
 
     flog(warn) << ss.str() << std::endl;
   } // for
+
+#if 0
+  for(auto p : primaries) {
+    auto const & primary =
+      colorings.at(p.first).idx_colorings[Policy::primary::index_space];
+
+    for(auto e : primary.owned) {
+    } // for
+  } // for
+#endif
 
   return colorings;
 } // closure

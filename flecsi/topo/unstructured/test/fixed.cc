@@ -103,7 +103,6 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
   static coloring color() {
     return {fixed::colors,
       {fixed::num_cells, fixed::num_vertices},
-      fixed::idx_allocs[process()],
       fixed::idx_colorings[process()],
       fixed::cnx_allocs[process()],
       fixed::cnx_colorings[process()]};

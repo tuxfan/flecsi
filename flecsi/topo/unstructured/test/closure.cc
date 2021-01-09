@@ -27,8 +27,8 @@ using namespace flecsi;
 
 struct closure_policy {
 
-  //  using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 1>;
-  using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 2>;
+  using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 1>;
+  // using primary = topo::unstructured_impl::primary_independent<0, 2, 0, 2>;
 
   using auxiliary =
     std::tuple<topo::unstructured_impl::auxiliary_independent<1, 0, 2>>;
