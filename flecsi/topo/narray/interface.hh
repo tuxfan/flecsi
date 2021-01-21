@@ -47,6 +47,9 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
   using axis = typename Policy::axis;
   using axes = typename Policy::axes;
   using coord = narray_impl::coord;
+  using hypercube = narray_impl::hypercube;
+  using coloring_definition = narray_impl::coloring_definition;
+  using id = util::id;
 
   static constexpr std::size_t dimension = Policy::dimension;
 
@@ -68,14 +71,18 @@ struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
 
   struct meta_data {
     using scoord = std::array<std::size_t, dimension>;
-    using srect = std::array<scoord, 2>;
+    using shypercube = std::array<scoord, 2>;
+    std::uint32_t faces;
 
-    std::array<std::size_t, index_spaces::size> boundary_depth;
-    std::array<std::size_t, index_spaces::size> halo_depth;
     std::array<std::array<std::size_t, dimension>, index_spaces::size> global;
+    std::array<std::array<std::size_t, dimension>, index_spaces::size> offset;
     std::array<std::array<std::size_t, dimension>, index_spaces::size> extents;
-    std::array<srect, index_spaces::size> owned;
-    std::array<srect, index_spaces::size> exclusive;
+    std::array<shypercube, index_spaces::size> logical;
+    std::array<shypercube, index_spaces::size> extended;
+
+    static_assert(std::is_trivial<typename Policy::meta_data>::value,
+      "illegal meta data type: must be a trivial type");
+    typename Policy::meta_data meta;
   };
 
   static inline const typename field<meta_data,
@@ -133,7 +140,7 @@ private:
     };
 
     auto ptrs_task = [&ic](auto f) {
-      execute<set_ptrs, mpi>(f, ic.points);
+                       execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points);
     };
 
     return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
@@ -158,29 +165,43 @@ private:
 
     for(std::size_t i{0}; i < index_spaces::size; ++i) {
       auto const & cg = c.idx_colorings[i].global;
+      auto const & co = c.idx_colorings[i].offset;
       auto const & ce = c.idx_colorings[i].extents;
 
       flog_assert(cg.size() == dimension,
         "invalid #axes(" << cg.size() << ") must be: " << dimension);
+      flog_assert(co.size() == dimension,
+        "invalid #axes(" << co.size() << ") must be: " << dimension);
       flog_assert(ce.size() == dimension,
         "invalid #axes(" << ce.size() << ") must be: " << dimension);
 
+      md.faces = c.idx_colorings[i].faces;
+
       std::copy_n(cg.begin(), dimension, md.global[i].begin());
+      std::copy_n(co.begin(), dimension, md.offset[i].begin());
       std::copy_n(ce.begin(), dimension, md.extents[i].begin());
 
-      auto const & co = c.idx_colorings[i].owned;
-      std::copy_n(co[0].begin(), dimension, md.owned[i][0].begin());
-      std::copy_n(co[1].begin(), dimension, md.owned[i][1].begin());
+      auto const & cl = c.idx_colorings[i].logical;
+      std::copy_n(cl[0].begin(), dimension, md.logical[i][0].begin());
+      std::copy_n(cl[1].begin(), dimension, md.logical[i][1].begin());
 
-      auto const & cex = c.idx_colorings[i].exclusive;
-      std::copy_n(cex[0].begin(), dimension, md.exclusive[i][0].begin());
-      std::copy_n(cex[1].begin(), dimension, md.exclusive[i][1].begin());
+      auto const & cex = c.idx_colorings[i].extended;
+      std::copy_n(cex[0].begin(), dimension, md.extended[i][0].begin());
+      std::copy_n(cex[1].begin(), dimension, md.extended[i][1].begin());
 
 #if 0
       std::stringstream ss;
       ss << "global(" << i << "): (";
       for(std::size_t a{0}; a < dimension; ++a) {
         ss << md.global[i][a];
+        if(a < dimension - 1)
+          ss << ",";
+      }
+      flog(warn) << ss.str() << ")" << std::endl;
+      ss.str("");
+      ss << "offset(" << i << "): (";
+      for(std::size_t a{0}; a < dimension; ++a) {
+        ss << md.offset[i][a];
         if(a < dimension - 1)
           ss << ",";
       }
@@ -196,30 +217,30 @@ private:
       flog(warn) << ss.str() << ")" << std::endl;
       ss.str("");
 
-      ss << "owned(" << i << "): start (";
+      ss << "logical(" << i << "): start (";
       for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.owned[i][0][a];
+        ss << md.logical[i][0][a];
         if(a < dimension - 1)
           ss << ",";
       }
       ss << ") end: (";
       for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.owned[i][1][a];
+        ss << md.logical[i][1][a];
         if(a < dimension - 1)
           ss << ",";
       }
       flog(warn) << ss.str() << ")" << std::endl;
       ss.str("");
 
-      ss << "exclusive(" << i << "): start (";
+      ss << "extended(" << i << "): start (";
       for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.exclusive[i][0][a];
+        ss << md.extended[i][0][a];
         if(a < dimension - 1)
           ss << ",";
       }
       ss << ") end: (";
       for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.exclusive[i][1][a];
+        ss << md.extended[i][1][a];
         if(a < dimension - 1)
           ss << ",";
       }
@@ -253,38 +274,139 @@ struct narray<Policy>::access {
 
   access() {}
 
-  enum class rect : std::size_t { owned, exclusive, all };
-  using rects = index::has<rect::owned, rect::exclusive, rect::all>;
+  enum class range : std::size_t {
+    logical,
+    extended,
+    all,
+    boundary_low,
+    boundary_high,
+    ghost_low,
+    ghost_high,
+    global
+  };
 
-  template<index_space S, axis A, rect R>
+  using hypercubes = index::has<range::logical,
+    range::extended,
+    range::all,
+    range::boundary_low,
+    range::boundary_high,
+    range::ghost_low,
+    range::ghost_high,
+    range::global>;
+
+  template<axis A>
+  bool is_low() {
+    return (meta_.get().faces >> A * 2) & narray_impl::low;
+  }
+
+  template<axis A>
+  bool is_high() {
+    return (meta_.get().faces >> A * 2) & narray_impl::high;
+  }
+
+  template<axis A>
+  bool is_interior() {
+    return !is_low<A>() && !is_high<A>();
+  }
+
+  // This should be private with the Policy as a friend
+  auto & meta() {
+    return meta_.get().meta;
+  }
+
+  template<index_space S, axis A, range SE>
   std::size_t size() {
     auto const & md = meta_.get();
-    static_assert(std::size_t(R) < rects::size, "invalid extents identifier");
-    if constexpr(R == rect::owned) {
-      return md.owned[S][1][A];
+    static_assert(std::size_t(SE) < hypercubes::size, "invalid size identifier");
+    if constexpr(SE == range::logical) {
+      return md.logical[S][1][A];
     }
-    else if(R == rect::exclusive) {
-      return md.exclusive[S][1][A];
+    else if(SE == range::extended) {
+      return md.extended[S][1][A];
     }
-    else if(R == rect::all) {
+    else if(SE == range::all) {
       return md.extents[S][A];
+    }
+    else if(SE == range::boundary_low) {
+      return md.logical[S][0][A] - md.extended[S][0][A];
+    }
+    else if(SE == range::boundary_high) {
+      return md.extended[S][1][A] - md.logical[S][1][A];
+    }
+    else if(SE == range::ghost_low) {
+      return md.logical[S][0][A];
+    }
+    else if(SE == range::ghost_high) {
+      return md.extents[S][A] - md.logical[S][1][A];
+    }
+    else if(SE == range::global) {
+      return md.global[S][A];
     }
   }
 
-  template<index_space S, axis A, rect R>
+  template<index_space S, axis A, range SE>
   auto extents() {
     auto const & md = meta_.get();
-    static_assert(std::size_t(R) < rects::size, "invalid extents identifier");
-    if constexpr(R == rect::owned) {
+    static_assert(std::size_t(SE) < hypercubes::size, "invalid extents identifier");
+    if constexpr(SE == range::logical) {
       return make_ids<S>(
-        util::iota_view<util::id>(md.owned[S][0][A], md.owned[S][1][A]));
+        util::iota_view<util::id>(md.logical[S][0][A], md.logical[S][1][A]));
     }
-    else if(R == rect::exclusive) {
-      return make_ids<S>(util::iota_view<util::id>(
-        md.exclusive[S][0][A], md.exclusive[S][1][A]));
+    else if(SE == range::extended) {
+      return make_ids<S>(
+        util::iota_view<util::id>(md.extended[S][0][A], md.extended[S][1][A]));
     }
-    else if(R == rect::all) {
+    else if(SE == range::all) {
       return make_ids<S>(util::iota_view<util::id>(0, md.extents[S][A]));
+    }
+    else if(SE == range::boundary_low) {
+      return make_ids<S>(util::iota_view<util::id>(
+        md.extended[S][0][A], md.extended[S][0][A] + size<S, A, SE>()));
+    }
+    else if(SE == range::boundary_high) {
+      return make_ids<S>(util::iota_view<util::id>(
+        md.extended[S][1][A], md.extended[S][1][A] + size<S, A, SE>()));
+    }
+    else if(SE == range::ghost_low) {
+      return make_ids<S>(util::iota_view<util::id>(
+        md.logical[S][0][A], md.logical[S][0][A] + size<S, A, SE>()));
+    }
+    else if(SE == range::ghost_high) {
+      return make_ids<S>(util::iota_view<util::id>(
+        md.logical[S][1][A], md.logical[S][1][A] + size<S, A, SE>()));
+    }
+    else {
+      flog_error("invalid range");
+    }
+  }
+
+  template<index_space S, axis A, range SE>
+  std::size_t offset() {
+    auto const & md = meta_.get();
+    static_assert(std::size_t(SE) < hypercubes::size, "invalid offset identifier");
+    if constexpr(SE == range::logical) {
+      return md.logical[S][0][A];
+    }
+    else if(SE == range::extended) {
+      return md.extended[S][0][A];
+    }
+    else if(SE == range::all) {
+      return md.extents[S][A];
+    }
+    else if(SE == range::boundary_low) {
+      return md.extended[S][0][A];
+    }
+    else if(SE == range::boundary_high) {
+      return md.logical[S][1][A];
+    }
+    else if(SE == range::ghost_low) {
+      return 0;
+    }
+    else if(SE == range::ghost_high) {
+      return md.logical[S][1][A];
+    }
+    else if(SE == range::global) {
+      return md.offset[S][A];
     }
   }
 

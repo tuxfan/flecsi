@@ -34,6 +34,11 @@ SCRIPT_ENABLE_UNIT_TESTS="ON"
 SCRIPT_ENABLE_GRAPHVIZ="ON"
 SCRIPT_ENABLE_DOCUMENTATION="ON"
 
+CLANG_FORMAT=""
+if [ -n "${CLANG_FORMAT_EXECUTABLE}" ] ; then
+  CLANG_FORMAT="-DClangFormat_EXECUTABLE=${CLANG_FORMAT_EXECUTABLE}"
+fi
+
 while [[ $# -gt 0 ]]
 do
 
@@ -44,7 +49,7 @@ do
 			echo "  -h, --help     Show this message and exit."
 			echo "  -c, --ccmake   Enable curses mode."
 			echo "  -u, --user     Enable user mode."
-			echo "  -t, --tutroial Disable FLOG Developer Mode."
+			echo "  -t, --tutorial Disable FLOG Developer Mode."
 			echo ""
 			echo "Compilers: clang, gnu, intel."
 			echo "(default compiler is clang)."
@@ -53,6 +58,9 @@ do
 			echo "(default runtime is mpi)."
 			echo ""
 			echo "User mode: release, disable tests"
+			echo ""
+			echo "You can set the path to the clang-format executable like:"
+			echo "$ export CLANG_FORMAT_EXECUTABLE=/path/to/clang-format"
 			exit
 		;;
 		--ccmake|-c)
@@ -119,6 +127,7 @@ echo "$cmake_mode" \
   "-DENABLE_UNIT_TESTS=$SCRIPT_ENABLE_UNIT_TESTS" \
   "-DENABLE_GRAPHVIZ=$SCRIPT_ENABLE_GRAPHVIZ" \
   "-DENABLE_DOCUMENTATION=$SCRIPT_ENABLE_DOCUMENTATION" \
+  "${CLANG_FORMAT}" \
   "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} $cmake_args $cwd"
 echo ""
 
@@ -135,6 +144,7 @@ $cmake_mode \
   -DENABLE_GRAPHVIZ=$SCRIPT_ENABLE_GRAPHVIZ \
   -DENABLE_DOCUMENTATION=$SCRIPT_ENABLE_DOCUMENTATION \
   -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} \
+  ${CLANG_FORMAT} \
   $cmake_args \
   $cwd
 

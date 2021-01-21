@@ -149,7 +149,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
   }
 #endif
 
-  static void init_c2v(field<util::id, data::ragged>::mutator<rw> c2v,
+  static void init_c2v(field<util::id, data::ragged>::mutator<rw, na> c2v,
     topo::unstructured_impl::crs const & cnx,
     std::map<std::size_t, std::size_t> & map) {
     std::size_t off{0};
@@ -167,8 +167,8 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     }
   }
 
-  static void init_v2c(field<util::id, data::ragged>::mutator<rw> v2c,
-    field<util::id, data::ragged>::accessor<ro> c2v) {
+  static void init_v2c(field<util::id, data::ragged>::mutator<rw, na> v2c,
+    field<util::id, data::ragged>::accessor<ro, na> c2v) {
     for(std::size_t c{0}; c < c2v.size(); ++c) {
       for(std::size_t v{0}; v < c2v[c].size(); ++v) {
         v2c[c2v[c][v]].push_back(c);
@@ -209,7 +209,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       global::vertices.push_back(e.id);
     }
 
-    topo::unstructured_impl::force_unique(global::vertices);
+    util::force_unique(global::vertices);
 
     std::map<std::size_t, std::size_t> vertex_map;
     std::size_t off{0};
@@ -237,7 +237,7 @@ const field<std::size_t>::definition<fixed_mesh, fixed_mesh::cells> cids;
 const field<std::size_t>::definition<fixed_mesh, fixed_mesh::vertices> vids;
 
 void
-init_ids(fixed_mesh::accessor<ro> m,
+init_ids(fixed_mesh::accessor<ro, ro> m,
   field<std::size_t>::accessor<wo, wo> cids,
   field<std::size_t>::accessor<wo, wo> vids) {
   for(auto c : m.cells()) {
@@ -249,7 +249,8 @@ init_ids(fixed_mesh::accessor<ro> m,
 }
 
 void
-init_pressure(fixed_mesh::accessor<ro> m, field<double>::accessor<wo, na> p) {
+init_pressure(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<wo, na> p) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.cells()) {
     p[c] = -1.0;
@@ -257,7 +258,8 @@ init_pressure(fixed_mesh::accessor<ro> m, field<double>::accessor<wo, na> p) {
 }
 
 void
-update_pressure(fixed_mesh::accessor<ro> m, field<double>::accessor<rw, ro> p) {
+update_pressure(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<rw, ro> p) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.cells()) {
     p[c] = color();
@@ -265,7 +267,8 @@ update_pressure(fixed_mesh::accessor<ro> m, field<double>::accessor<rw, ro> p) {
 }
 
 void
-print_pressure(fixed_mesh::accessor<ro> m, field<double>::accessor<ro, ro> p) {
+print_pressure(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<ro, ro> p) {
   flog(warn) << __func__ << std::endl;
   std::stringstream ss;
   for(auto c : m.cells()) {
@@ -275,7 +278,8 @@ print_pressure(fixed_mesh::accessor<ro> m, field<double>::accessor<ro, ro> p) {
 }
 
 void
-init_density(fixed_mesh::accessor<ro> m, field<double>::accessor<wo, na> d) {
+init_density(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<wo, na> d) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.vertices()) {
     d[c] = -1.0;
@@ -283,7 +287,8 @@ init_density(fixed_mesh::accessor<ro> m, field<double>::accessor<wo, na> d) {
 }
 
 void
-update_density(fixed_mesh::accessor<ro> m, field<double>::accessor<rw, ro> d) {
+update_density(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<rw, ro> d) {
   flog(warn) << __func__ << std::endl;
   for(auto c : m.vertices()) {
     d[c] = color();
@@ -291,7 +296,8 @@ update_density(fixed_mesh::accessor<ro> m, field<double>::accessor<rw, ro> d) {
 }
 
 void
-print_density(fixed_mesh::accessor<ro> m, field<double>::accessor<ro, ro> d) {
+print_density(fixed_mesh::accessor<ro, ro> m,
+  field<double>::accessor<ro, ro> d) {
   flog(warn) << __func__ << std::endl;
   std::stringstream ss;
   for(auto c : m.vertices()) {
@@ -301,7 +307,7 @@ print_density(fixed_mesh::accessor<ro> m, field<double>::accessor<ro, ro> d) {
 }
 
 void
-print(fixed_mesh::accessor<ro> m,
+print(fixed_mesh::accessor<ro, ro> m,
   field<std::size_t>::accessor<ro, wo> cids,
   field<std::size_t>::accessor<ro, wo> vids) {
   for(auto c : m.cells()) {

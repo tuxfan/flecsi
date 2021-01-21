@@ -31,6 +31,10 @@ class Flecsi(CMakePackage):
             values=('legion', 'mpi', 'hpx'),
             description='Distributed-Memory Backend', multi=False)
 
+    variant('caliper_detail', default='none',
+            values=('none', 'low', 'medium', 'high'),
+            description='Set Caliper Profiling Detail', multi=False)
+
     variant('flog', default=False,
             description='Enable FLOG Logging Utility')
 
@@ -62,6 +66,11 @@ class Flecsi(CMakePackage):
 
     depends_on('boost@1.70.0 cxxstd=17 +program_options +atomic '
         '+filesystem +regex +system')
+
+    # Caliper
+
+    for level in ('low', 'medium', 'high'):
+        depends_on('caliper', when='caliper_detail=%s' % level)
 
     # CMake
 
@@ -116,6 +125,9 @@ class Flecsi(CMakePackage):
 
         options.append('-DFLECSI_RUNTIME_MODEL=%s' %
             spec.variants['backend'].value)
+
+        options.append('-DCALIPER_DETAIL=%s' %
+            spec.variants['caliper_detail'].value)
 
         if ('+flog' in spec):
             options.append('-DENABLE_FLOG=ON')

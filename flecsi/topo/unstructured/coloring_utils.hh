@@ -23,6 +23,7 @@
 #include "flecsi/topo/unstructured/coloring_functors.hh"
 #include "flecsi/topo/unstructured/types.hh"
 #include "flecsi/util/color_map.hh"
+#include "flecsi/util/common.hh"
 #include "flecsi/util/dcrs.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/serialize.hh"
@@ -103,7 +104,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate referencers
-  force_unique(v2c);
+  util::force_unique(v2c);
 
   std::vector<std::vector<std::size_t>> referencer_inverse(size);
 
@@ -117,7 +118,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate inverses
-  force_unique(referencer_inverse);
+  util::force_unique(referencer_inverse);
 
   // Request vertex-to-cell connectivity for the cells that are
   // on other ranks in the naive cell distribution.
@@ -133,7 +134,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate referencers
-  force_unique(v2c);
+  util::force_unique(v2c);
 
   std::map<std::size_t, std::vector<std::size_t>> c2c;
   std::size_t c{offset};
@@ -161,7 +162,7 @@ make_dcrs(Definition const & md,
   } // for
 
   // Remove duplicate connections
-  force_unique(c2c);
+  util::force_unique(c2c);
 
   util::dcrs dcrs;
   dcrs.distribution = cm.distribution();
@@ -325,7 +326,7 @@ closure(Definition const & md,
       wkset.at(p.first).clear();
     } // for
 
-    force_unique(layer);
+    util::force_unique(layer);
 
     /*
       Request entity owners from naive-owners.
@@ -457,14 +458,14 @@ closure(Definition const & md,
       primary.ghosts.emplace_back(ghost_entity{e, e2co.at(e)});
     } // for
 
-    force_unique(primary.owned);
-    force_unique(primary.exclusive);
-    force_unique(primary.shared);
-    force_unique(primary.ghosts);
+    util::force_unique(primary.owned);
+    util::force_unique(primary.exclusive);
+    util::force_unique(primary.shared);
+    util::force_unique(primary.ghosts);
 
     std::stringstream ss;
     ss << "color " << p.first << std::endl;
-    ss << log::insert(primary.owned, "owned") << std::endl;
+    ss << log::to_string(primary.owned, "owned") << std::endl;
 
     ss << "shared:" << std::endl;
     for(auto e : primary.shared) {

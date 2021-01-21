@@ -23,6 +23,7 @@
 #include "flecsi/execution.hh"
 #include "flecsi/topo/index.hh"
 #include "flecsi/util/color_map.hh"
+#include "flecsi/util/common.hh"
 #include "flecsi/util/mpi.hh"
 #include "flecsi/util/serialize.hh"
 
@@ -35,29 +36,6 @@
 namespace flecsi {
 namespace topo {
 namespace unstructured_impl {
-
-template<typename T>
-void
-force_unique(std::vector<T> & v) {
-  std::sort(v.begin(), v.end());
-  auto first = v.begin();
-  auto last = std::unique(first, v.end());
-  v.erase(last, v.end());
-}
-
-template<typename K, typename T>
-void
-force_unique(std::map<K, std::vector<T>> & m) {
-  for(auto & v : m)
-    force_unique(v.second);
-}
-
-template<typename T>
-void
-force_unique(std::vector<std::vector<T>> & vv) {
-  for(auto & v : vv)
-    force_unique(v);
-}
 
 struct shared_entity {
   std::size_t id;
@@ -224,7 +202,7 @@ struct unstructured_base {
       sorting the mesh entity ids.
      */
 
-    unstructured_impl::force_unique(entities);
+    util::force_unique(entities);
 
     /*
       After the entity order has been established, we need to create
@@ -341,7 +319,9 @@ struct unstructured_base {
     } // for
   }
 
-  static void set_ptrs(field<data::points::Value>::accessor<wo> a,
+  template<std::size_t N>
+  static void set_ptrs(
+    field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
     std::map<std::size_t,
       std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs) {
     for(auto const & si : shared_ptrs) {

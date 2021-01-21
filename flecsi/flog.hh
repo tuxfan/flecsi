@@ -115,7 +115,7 @@ add_output_stream(std::string const & label,
 
 template<typename T>
 auto
-insert(T const & t) {
+to_string(T const & t) {
   std::stringstream ss;
   ss << t;
   return ss.str();
@@ -125,7 +125,7 @@ template<template<typename, typename> typename C,
   typename V,
   typename A = std::allocator<V>>
 auto
-insert(C<V, A> const & c, std::string label = "container") {
+to_string(C<V, A> const & c, std::string label = "container") {
   std::stringstream ss;
 
   if(label != "")
@@ -138,7 +138,7 @@ insert(C<V, A> const & c, std::string label = "container") {
       ss << e << " ";
     }
     else {
-      ss << i++ << ":\n  " << insert(e, "") << std::endl;
+      ss << i++ << ":\n  " << to_string(e, "") << std::endl;
     } // if
   } // for
   return ss.str();
@@ -146,7 +146,7 @@ insert(C<V, A> const & c, std::string label = "container") {
 
 template<typename K, typename V>
 auto
-insert(std::map<K, V> const & m, std::string label = "map") {
+to_string(std::map<K, V> const & m, std::string label = "map") {
   std::stringstream ss;
 
   if(label != "")
@@ -157,7 +157,7 @@ insert(std::map<K, V> const & m, std::string label = "map") {
       ss << "(" << i.first << "," << i.second << ") ";
     }
     else {
-      ss << i.first << ": [" << insert(i.second, "") << "]" << std::endl;
+      ss << i.first << ": [" << to_string(i.second, "") << "]" << std::endl;
     } // if
   } // for
   return ss.str();
@@ -165,7 +165,8 @@ insert(std::map<K, V> const & m, std::string label = "map") {
 
 template<typename K>
 auto
-insert(std::unordered_set<K> const & s, std::string label = "unordered set") {
+to_string(std::unordered_set<K> const & s,
+  std::string label = "unordered set") {
   std::stringstream ss;
 
   if(label != "")
@@ -184,7 +185,7 @@ insert(std::unordered_set<K> const & s, std::string label = "unordered set") {
   else {
     std::size_t i{0};
     for(auto e : s) {
-      ss << i++ << ":\n  " << insert(e, "") << std::endl;
+      ss << i++ << ":\n  " << to_string(e, "") << std::endl;
     } // for
   } // if
 
@@ -364,7 +365,7 @@ add_output_stream(std::string const &, std::ostream &, bool = false) {}
 
 template<typename T>
 auto
-insert(T const &) {
+to_string(T const &) {
   return "";
 }
 
@@ -372,19 +373,19 @@ template<template<typename, typename> typename C,
   typename V,
   typename A = std::allocator<V>>
 auto
-insert(C<V, A> const &, std::string) {
+to_string(C<V, A> const &, std::string) {
   return "";
 }
 
 template<typename K, typename V>
 auto
-insert(std::map<K, V> const &, std::string) {
+to_string(std::map<K, V> const &, std::string) {
   return "";
 }
 
 template<typename K>
 auto
-insert(std::unordered_set<K> const &, std::string) {
+to_string(std::unordered_set<K> const &, std::string) {
   return "";
 }
 

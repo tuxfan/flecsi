@@ -41,42 +41,61 @@ enum masks : uint32_t { interior = 0b00, low = 0b01, high = 0b10 };
 enum axes : std::size_t { x_axis, y_axis, z_axis };
 
 using coord = std::vector<std::size_t>;
-// using rect = std::vector<coord>; // can't be std::array<coord, 2>
-using rect = std::array<coord, 2>;
+using hypercube = std::array<coord, 2>;
 using interval = std::pair<std::size_t, std::size_t>;
 
 struct index_coloring {
 
   /*
-    The local extents of this color.
+    Store the axis orientations of this color.
    */
 
-  coord extents;
+  std::uint32_t faces;
 
   /*
-    The global coordinate offset of the local block.
-    Local to global id translation can be computed with this.
+    The global extents.
    */
 
   coord global;
 
   /*
-    Owned always span a single subregion.
+    The local extents of this color. This is the full size including
+    boundary depth, and ghosts. The "extents" coordinate implicitly
+    defines a hypercube from {0, 0, ..., 0} to extents{...}.
    */
 
-  rect owned;
+  coord extents;
 
   /*
-    Exclusive always span a single rect.
+    The global coordinate offset of the local hypercube.
+    Local to global id translation can be computed with this.
    */
 
-  rect exclusive;
+  coord offset;
 
   /*
-    Boolean indicating whether or not a copy plan should be created.
+    The logical entities, i.e., the entities for this color without
+    boundary padding or ghosts.
    */
 
-  bool create_plan = true;
+  hypercube logical;
+
+  /*
+    The extended entities, i.e., the logical entities including boundary
+    padding. The boundary depth can be computed like:
+
+      boundary_depth_low[axis] = logical[0][axis] - extended[0][axis];
+      boundary_depth_high[axis] = extended[1][axis] - logical[1][axis];
+
+    The ghost depth can be computed like:
+      shared_depth_low[axis] = logical[0][axis];
+      shared_depth_high[axis] = extents[axis] - logical[1][axis];
+
+    (note: We use logical to compute the ghost depth because an edge
+      cannot have both boundary padding, and ghosts.)
+   */
+
+  hypercube extended;
 
   /*
     Offsets on the remote color.
@@ -136,7 +155,9 @@ struct narray_base {
     } // for
   }
 
-  static void set_ptrs(field<data::points::Value>::accessor<wo> a,
+  template<std::size_t N>
+  static void set_ptrs(
+    field<data::points::Value>::accessor1<privilege_repeat(wo, N)> a,
     std::map<std::size_t,
       std::vector<std::pair<std::size_t, std::size_t>>> const & shared_ptrs) {
     for(auto const & si : shared_ptrs) {
@@ -166,17 +187,18 @@ struct util::serial<topo::narray_impl::index_coloring> {
   template<class P>
   static void put(P & p, const type & s) {
     serial_put(p,
-      std::tie(s.extents,
+      std::tie(s.faces,
         s.global,
-        s.owned,
-        s.exclusive,
-        s.create_plan,
+        s.extents,
+        s.offset,
+        s.logical,
+        s.extended,
         s.points,
         s.intervals));
   }
   static type get(const std::byte *& p) {
     const serial_cast r{p};
-    return type{r, r, r, r, r, r, r};
+    return type{r, r, r, r, r, r, r, r};
   }
 };
 

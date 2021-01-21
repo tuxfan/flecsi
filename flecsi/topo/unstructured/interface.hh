@@ -126,7 +126,7 @@ private:
     };
 
     auto ptrs_task = [&points](auto f) {
-      execute<set_ptrs, mpi>(f, points);
+                       execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, points);
     };
 
     return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
@@ -185,7 +185,8 @@ struct unstructured<Policy>::access {
 private:
   using entity_list = typename Policy::entity_list;
   template<const auto & Field>
-  using accessor = data::accessor_member<Field, Privileges>;
+  using accessor =
+    data::accessor_member<Field, privilege_pack<privilege_merge(Privileges)>>;
   util::key_array<resize::accessor<ro>, index_spaces> size_;
   connect_access<Policy, Privileges> connect_;
   lists_t<accessor<special_field>, Policy> special_;

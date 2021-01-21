@@ -1,26 +1,24 @@
 /*
-    @@@@@@@@  @@           @@@@@@   @@@@@@@@ @@
-   /@@/////  /@@          @@////@@ @@////// /@@
-   /@@       /@@  @@@@@  @@    // /@@       /@@
-   /@@@@@@@  /@@ @@///@@/@@       /@@@@@@@@@/@@
-   /@@////   /@@/@@@@@@@/@@       ////////@@/@@
-   /@@       /@@/@@//// //@@    @@       /@@/@@
-   /@@       @@@//@@@@@@ //@@@@@@  @@@@@@@@ /@@
-   //       ///  //////   //////  ////////  //
-
    Copyright (c) 2016, Triad National Security, LLC
    All rights reserved.
                                                                               */
 
+#include "analysis.hh"
+#include "finalize.hh"
+#include "initialize.hh"
+#include "options.hh"
+#include "problem.hh"
+#include "solve.hh"
+#include "specialization/control.hh"
+#include "state.hh"
+
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
-
-#include "control.hh"
 
 int
 main(int argc, char ** argv) {
   auto status = flecsi::initialize(argc, argv);
-  status = control::check_status(status);
+  status = poisson::control::check_status(status);
 
   if(status != flecsi::run::status::success) {
     return status < flecsi::run::status::clean ? 0 : status;
@@ -28,7 +26,7 @@ main(int argc, char ** argv) {
 
   flecsi::log::add_output_stream("clog", std::clog, true);
 
-  status = flecsi::start(control::execute);
+  status = flecsi::start(poisson::control::execute);
 
   flecsi::finalize();
 
