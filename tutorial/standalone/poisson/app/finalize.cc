@@ -3,11 +3,14 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#include "finalize.hh"
+#include "state.hh"
+#include "tasks/io.hh"
 
-#include "flecsi/execution.hh"
+using namespace flecsi;
 
-flecsi::program_option<std::size_t>
-  x_extents("x-extents", "The x extents of the mesh.", 1);
-flecsi::program_option<std::size_t>
-  y_extents("y-extents", "The y extents of the mesh.", 1);
+int
+poisson::action::finalize() {
+  execute<task::io, mpi>(m, sd(m));
+  return 0;
+} // finalize

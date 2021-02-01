@@ -3,26 +3,16 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
-
-#include "initialize.hh"
-#include "options.hh"
-#include "specialization/control.hh"
+#include "problem.hh"
 #include "state.hh"
 #include "tasks/init.hh"
 
-namespace poisson {
-namespace action {
+#include <flecsi/execution.hh>
+
 using namespace flecsi;
 
 int
-problem() {
+poisson::action::problem() {
   execute<task::eggcarton>(m, ud(m), fd(m), sd(m));
   return 0;
-} // init_mesh
-
-control::action<problem, cp::initialize> problem_action;
-const auto problem_dep = problem_action.add(init_mesh_action);
-
-} // namespace action
-} // namespace poisson
+} // problem

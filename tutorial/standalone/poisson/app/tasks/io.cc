@@ -3,14 +3,14 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#include "tasks/io.hh"
 
-#include "../../specialization/mesh.hh"
+#include <sstream>
 
-namespace poisson {
-namespace task {
+using namespace flecsi;
 
-void io(mesh::accessor<ro> m,
+void
+poisson::task::io(mesh::accessor<ro> m,
   field<double>::accessor<ro, ro> ua) {
   auto u = m.mdspan<mesh::vertices>(ua);
 
@@ -32,6 +32,3 @@ void io(mesh::accessor<ro> m,
     } // for
   } // for
 } // io
-
-} // namespace task
-} // namespace poisson

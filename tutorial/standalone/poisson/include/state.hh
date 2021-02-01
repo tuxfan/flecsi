@@ -5,17 +5,16 @@
 
 #pragma once
 
-#include "options.hh"
 #include "specialization/mesh.hh"
 
 namespace poisson {
 
-const flecsi::field<double>::definition<mesh, mesh::vertices> ud;
-const flecsi::field<double>::definition<mesh, mesh::vertices> fd;
-const flecsi::field<double>::definition<mesh, mesh::vertices> sd;
-const flecsi::field<double>::definition<mesh, mesh::vertices> Aud;
+inline const field<double>::definition<mesh, mesh::vertices> ud;
+inline const field<double>::definition<mesh, mesh::vertices> fd;
+inline const field<double>::definition<mesh, mesh::vertices> sd;
+inline const field<double>::definition<mesh, mesh::vertices> Aud;
 
-mesh::slot m;
-mesh::cslot coloring;
+inline mesh::slot m;
+inline mesh::cslot coloring;
 
 } // namespace poisson

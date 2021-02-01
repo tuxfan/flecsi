@@ -3,14 +3,10 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
-
-#include "../../specialization/mesh.hh"
+#include "tasks/init.hh"
 
 #include <cmath>
 
-namespace poisson {
-namespace task {
 using namespace flecsi;
 
 constexpr double PI = 3.14159;
@@ -18,7 +14,7 @@ constexpr double K = 12.0;
 constexpr double L = 2.0;
 
 void
-eggcarton(mesh::accessor<ro> m,
+poisson::task::eggcarton(mesh::accessor<ro> m,
   field<double>::accessor<wo, ro> ua,
   field<double>::accessor<wo, ro> fa,
   field<double>::accessor<wo, ro> sa) {
@@ -50,6 +46,3 @@ eggcarton(mesh::accessor<ro> m,
     } // for
   } // for
 } // eggcarton
-
-} // namespace task
-} // namespace poisson

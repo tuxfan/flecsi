@@ -44,7 +44,7 @@ namespace unstructured_impl {
  */
 
 template<typename Definition>
-auto
+inline auto
 make_dcrs(Definition const & md,
   std::size_t through_dimension,
   MPI_Comm comm = MPI_COMM_WORLD) {
@@ -202,7 +202,7 @@ distribute(util::dcrs const & naive,
   return primaries;
 } // distribute
 
-auto
+inline auto
 migrate(util::dcrs const & naive,
   size_t colors,
   std::vector<std::size_t> const & index_colors,

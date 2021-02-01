@@ -3,7 +3,7 @@
 # All rights reserved
 #------------------------------------------------------------------------------#
 
-include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 #------------------------------------------------------------------------------#
 # Add an executable.
@@ -11,16 +11,15 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 add_executable(poisson
   poisson.cc
-  analysis.hh
-  initialize.hh
-  options.hh
-  problem.hh
-  solve.hh
-  state.hh
-  tasks/init.hh
-  tasks/norm.hh
-  tasks/smooth.hh
-  ${PROJECT_SOURCE_DIR}/specialization/control.hh
+  analysis.cc
+  finalize.cc
+  initialize.cc
+  problem.cc
+  solve.cc
+  tasks/init.cc
+  tasks/io.cc
+  tasks/norm.cc
+  tasks/smooth.cc
 )
 
 #------------------------------------------------------------------------------#

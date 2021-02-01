@@ -75,7 +75,7 @@ factor(std::size_t np) {
   return facs;
 } // factor
 
-std::vector<std::size_t>
+inline std::vector<std::size_t>
 distribute(std::size_t np, std::vector<std::size_t> indices) {
   std::vector<std::size_t> parts(indices.size(), 1);
 
@@ -100,7 +100,7 @@ distribute(std::size_t np, std::vector<std::size_t> indices) {
   interior. The enumeration defining these masks is in types.hh.
  */
 
-auto
+inline auto
 orientation(std::size_t dimension,
   std::vector<std::size_t> const & color_indices,
   std::vector<std::size_t> const & axis_colors) {

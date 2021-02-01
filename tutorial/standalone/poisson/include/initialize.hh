@@ -5,21 +5,13 @@
 
 #pragma once
 
-#include "state.hh"
-#include "tasks/io.hh"
-
-#include <flecsi/flog.hh>
+#include "specialization/control.hh"
 
 namespace poisson {
 namespace action {
 
-int
-finalize() {
-  execute<task::io, mpi>(m, sd(m));
-  return 0;
-} // init_mesh
-
-control::action<finalize, cp::finalize> finalize_action;
+int init_mesh();
+inline control::action<init_mesh, cp::initialize> init_mesh_action;
 
 } // namespace action
 } // namespace poisson

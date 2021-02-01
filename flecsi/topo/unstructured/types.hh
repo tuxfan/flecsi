@@ -52,7 +52,7 @@ struct shared_entity {
   }
 };
 
-std::ostream &
+inline std::ostream &
 operator<<(std::ostream & stream, shared_entity const & s) {
   stream << "<" << s.id << ": ";
   for(auto d : s.dependents) {
@@ -77,7 +77,7 @@ struct ghost_entity {
   }
 };
 
-std::ostream &
+inline std::ostream &
 operator<<(std::ostream & stream, ghost_entity const & g) {
   stream << "<" << g.id << ":" << g.color << ">";
   return stream;

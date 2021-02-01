@@ -3,16 +3,12 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#include "tasks/smooth.hh"
 
-#include "../../specialization/mesh.hh"
-
-namespace poisson {
-namespace task {
 using namespace flecsi;
 
 void
-smooth(mesh::accessor<ro> m,
+poisson::task::smooth(mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
   field<double>::accessor<ro, ro> fa) {
   auto u = m.mdspan<mesh::vertices>(ua);
@@ -28,6 +24,3 @@ smooth(mesh::accessor<ro> m,
   } // for
   // clang format on
 } // smooth
-
-} // namespace task
-} // namespace poisson
