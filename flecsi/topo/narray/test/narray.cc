@@ -42,15 +42,6 @@ print(mesh::accessor<ro> m, field<std::size_t>::accessor<ro, ro> ca) {
     ss << std::endl;
   } // for
   ss << std::endl;
-#if 0
-  for(int j{int(m.size<mesh::y_axis, mesh::all>() - 1)}; j >= 0; --j) {
-    for(auto i : m.extents<mesh::x_axis, mesh::all>()) {
-      std::size_t id = i + j * int(m.size<mesh::x_axis, mesh::all>());
-      ss << id << " ";
-    } // for
-    ss << std::endl;
-  } // for
-#endif
   flog(warn) << ss.str() << std::endl;
 }
 
@@ -62,7 +53,6 @@ const field<std::size_t>::definition<mesh, mesh::entities> cs;
 int
 narray_driver() {
   UNIT {
-#if 1
     {
       mesh::coord indices{8, 8};
       // mesh::coord indices{16, 16};
@@ -75,18 +65,14 @@ narray_driver() {
       mesh::coord hdepths{1, 1};
       mesh::coord bdepths{0, 0};
       std::vector<bool> periodic{false, false};
-#if 1
       std::vector<mesh::coloring_definition> index_definitions = {
         {colors, indices, hdepths, bdepths, periodic, true}};
       coloring.allocate(index_definitions);
       m.allocate(coloring.get());
       execute<extents>(m, cs(m));
       execute<print>(m, cs(m));
-#endif
     } // scope
-#endif
 
-#if 0
     {
       mesh::coord indices{8, 8, 8};
       auto colors = topo::narray_impl::distribute(processes(), indices);
@@ -97,7 +83,6 @@ narray_driver() {
         {colors, indices, hdepths, bdepths, periodic, true}};
       auto [clrs, idx_clrngs] = topo::narray_impl::color(index_definitions);
     } // scope
-#endif
   };
 } // coloring_driver
 

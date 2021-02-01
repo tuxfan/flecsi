@@ -3,23 +3,18 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
-
-#include "options.hh"
-#include "specialization/control.hh"
+#include "solve.hh"
 #include "state.hh"
+#include "tasks/norm.hh"
 #include "tasks/smooth.hh"
 
 #include <flecsi/execution.hh>
 #include <flecsi/flog.hh>
 
-namespace poisson {
-namespace action {
 using namespace flecsi;
 
 int
-solve() {
-
+poisson::action::solve() {
   double err{std::numeric_limits<double>::max()};
 
   std::size_t sub{500};
@@ -37,11 +32,5 @@ solve() {
                << std::endl;
     log::flush();
   } while(err > 10e-05);
-
   return 0;
 } // solve
-
-control::action<solve, cp::solve> solve_action;
-
-} // namespace action
-} // namespace poisson

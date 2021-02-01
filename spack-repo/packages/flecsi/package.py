@@ -90,7 +90,7 @@ class Flecsi(CMakePackage):
 
     # Legion
 
-    depends_on('legion@ctrl-rep-8:ctrl-rep-99',when='backend=legion')
+    depends_on('legion@ctrl-rep-9:ctrl-rep-99',when='backend=legion')
     depends_on('legion+hdf5',when='backend=legion +hdf5')
     depends_on('hdf5@1.10.7:',when='backend=legion +hdf5')
 
@@ -102,7 +102,7 @@ class Flecsi(CMakePackage):
     # MPI
 
     depends_on('mpi', when='backend=mpi')
-    depends_on('mpich@3.2.1', when='^mpich')
+    depends_on('mpich@3.4.1', when='^mpich')
     depends_on('openmpi@3.1.6', when='^openmpi')
 
     # HPX

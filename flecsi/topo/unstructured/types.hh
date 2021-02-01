@@ -52,7 +52,7 @@ struct shared_entity {
   }
 };
 
-std::ostream &
+inline std::ostream &
 operator<<(std::ostream & stream, shared_entity const & s) {
   stream << "<" << s.id << ": ";
   for(auto d : s.dependents) {
@@ -77,7 +77,7 @@ struct ghost_entity {
   }
 };
 
-std::ostream &
+inline std::ostream &
 operator<<(std::ostream & stream, ghost_entity const & g) {
   stream << "<" << g.id << ":" << g.color << ">";
   return stream;
@@ -116,6 +116,15 @@ struct auxiliary_independent {
   static constexpr size_t dimension = Dimension;
   static constexpr size_t primary_dimension = PrimaryDimension;
 }; // struct auxiliary_independent
+
+inline void transpose(field<util::id, data::ragged>::accessor<ro, na> input,
+  field<util::id, data::ragged>::mutator<rw, na> output) {
+  for(std::size_t e{0}; e<input.size(); ++e) {
+    for(std::size_t v{0}; v<input[e].size(); ++v) {
+      output[input[e][v]].push_back(e);
+    }
+  }
+}
 
 } // namespace unstructured_impl
 

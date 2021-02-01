@@ -44,7 +44,7 @@ namespace unstructured_impl {
  */
 
 template<typename Definition>
-auto
+inline auto
 make_dcrs(Definition const & md,
   std::size_t through_dimension,
   MPI_Comm comm = MPI_COMM_WORLD) {
@@ -202,7 +202,7 @@ distribute(util::dcrs const & naive,
   return primaries;
 } // distribute
 
-auto
+inline auto
 migrate(util::dcrs const & naive,
   size_t colors,
   std::vector<std::size_t> const & index_colors,
@@ -268,7 +268,7 @@ closure(Definition const & md,
 
   std::unordered_map<std::size_t, std::size_t> e2co;
   std::map<std::size_t, std::vector<std::size_t>> wkset;
-  for(auto p : primaries) {
+  for(auto const & p : primaries) {
     wkset[p.first].reserve(p.second.size());
     for(auto e : p.second) {
       e2co.try_emplace(e, p.first);
@@ -289,7 +289,7 @@ closure(Definition const & md,
       Create request layer, and add local information.
      */
 
-    for(auto p : primaries) {
+    for(auto const & p : primaries) {
       for(auto e : wkset.at(p.first)) {
         for(auto v : e2v[m2p.at(e)]) {
           for(auto en : v2e.at(v)) {
@@ -342,7 +342,7 @@ closure(Definition const & md,
       reqs(size);
     {
       auto requested = util::mpi::all_to_allv(
-        [&requests](int r, int) { return requests[r]; }, comm);
+        [&requests](int r, int) -> auto & { return requests[r]; }, comm);
 
       /*
         Fulfill naive-owner requests with migrated owners.
@@ -362,7 +362,7 @@ closure(Definition const & md,
       } // scope
 
       auto fulfilled = util::mpi::all_to_allv(
-        [&fulfills](int r, int) { return fulfills[r]; }, comm);
+        [&fulfills](int r, int) -> auto & { return fulfills[r]; }, comm);
 
       /*
         Request entity information from migrated owners.
@@ -377,7 +377,7 @@ closure(Definition const & md,
     } // scope
 
     auto requested =
-      util::mpi::all_to_allv([&reqs](int r, int) { return reqs[r]; }, comm);
+      util::mpi::all_to_allv([&reqs](int r, int) -> auto & { return reqs[r]; }, comm);
 
     /*
       Keep track of dependent colors for requested entities.
@@ -439,6 +439,7 @@ closure(Definition const & md,
 
     auto & primary =
       colorings.at(p.first).idx_colorings[Policy::primary::index_space];
+    //primary.owned = p.second;
     primary.owned.reserve(p.second.size());
     primary.owned.insert(
       primary.owned.begin(), p.second.begin(), p.second.end());
@@ -463,6 +464,7 @@ closure(Definition const & md,
     util::force_unique(primary.shared);
     util::force_unique(primary.ghosts);
 
+#if 1
     std::stringstream ss;
     ss << "color " << p.first << std::endl;
     ss << log::to_string(primary.owned, "owned") << std::endl;
@@ -484,6 +486,7 @@ closure(Definition const & md,
     ss << std::endl;
 
     flog(warn) << ss.str() << std::endl;
+#endif
   } // for
 
 #if 0

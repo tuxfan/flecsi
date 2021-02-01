@@ -3,7 +3,7 @@
    All rights reserved.
                                                                               */
 
-#include "analysis.hh"
+#include "analyze.hh"
 #include "finalize.hh"
 #include "initialize.hh"
 #include "options.hh"

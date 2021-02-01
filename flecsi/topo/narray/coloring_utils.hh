@@ -75,7 +75,11 @@ factor(std::size_t np) {
   return facs;
 } // factor
 
-std::vector<std::size_t>
+/*
+  Create an axial color distribution for the given number of processes.
+ */
+
+inline std::vector<std::size_t>
 distribute(std::size_t np, std::vector<std::size_t> indices) {
   std::vector<std::size_t> parts(indices.size(), 1);
 
@@ -100,7 +104,7 @@ distribute(std::size_t np, std::vector<std::size_t> indices) {
   interior. The enumeration defining these masks is in types.hh.
  */
 
-auto
+inline auto
 orientation(std::size_t dimension,
   std::vector<std::size_t> const & color_indices,
   std::vector<std::size_t> const & axis_colors) {
@@ -122,6 +126,7 @@ orientation(std::size_t dimension,
 } // orientation
 
 /*
+  Create an index coloring for the given color (as defined by color_indices).
  */
 
 inline auto
@@ -471,26 +476,6 @@ color(std::vector<coloring_definition> const & index_spaces,
         // understand.
         util::force_unique(subregions);
 
-#if 0
-        for(auto s : subregions) {
-          std::stringstream ss;
-          ss << "start: [";
-          for(std::size_t axis{0}; axis < dimension; ++axis) {
-            ss << s.second[0][axis];
-            if(axis != dimension - 1)
-              ss << ", ";
-          } // for
-          ss << "] end: (";
-          for(std::size_t axis{0}; axis < dimension; ++axis) {
-            ss << s.second[1][axis];
-            if(axis != dimension - 1)
-              ss << ", ";
-          } // for
-          ss << ") color: " << idx2co(s.first, axis_colors);
-          flog(warn) << ss.str() << std::endl;
-        } // for
-#endif
-
         /*
           Compute a remote index from a global coordinate.
          */
@@ -629,20 +614,6 @@ color(std::vector<coloring_definition> const & index_spaces,
           make(co, s.second, dimension - 1);
         } // for
 
-#if 0
-        for(auto i : idx_coloring.intervals) {
-          flog(warn) << "<" << i.first << "," << i.second << ">" << std::endl;
-        } // for
-
-        for(auto i : idx_coloring.points) {
-          std::stringstream ss;
-          ss << "color: " << i.first << std::endl;
-          for(auto e : i.second) {
-            ss << "<" << e.first << "," << e.second << ">" << std::endl;
-          } // for
-          flog(warn) << ss.str() << std::endl;
-        } // for
-#endif
         coloring.emplace(c, idx_coloring);
       } // for
     } // if

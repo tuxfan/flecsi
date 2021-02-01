@@ -3,16 +3,12 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#include "tasks/norm.hh"
 
-#include "../../specialization/mesh.hh"
-
-namespace poisson {
-namespace task {
 using namespace flecsi;
 
 double
-diff(mesh::accessor<ro> m,
+poisson::task::diff(mesh::accessor<ro> m,
   field<double>::accessor<ro, ro> aa,
   field<double>::accessor<ro, ro> ba) {
   auto a = m.mdspan<mesh::vertices>(aa);
@@ -29,12 +25,12 @@ diff(mesh::accessor<ro> m,
 } // diff
 
 double
-scale(mesh::accessor<ro> m, double sum) {
-  return pow(m.delta(), 2)*sum;
+poisson::task::scale(mesh::accessor<ro> m, double sum) {
+  return pow(m.delta(), 2) * sum;
 } // scale
 
 void
-discrete_operator(mesh::accessor<ro> m,
+poisson::task::discrete_operator(mesh::accessor<ro> m,
   field<double>::accessor<ro, ro> ua,
   field<double>::accessor<rw, ro> Aua) {
   auto u = m.mdspan<mesh::vertices>(ua);
@@ -51,6 +47,3 @@ discrete_operator(mesh::accessor<ro> m,
   } // for
   // clang-format on
 } // residual
-
-} // namespace task
-} // namespace poisson

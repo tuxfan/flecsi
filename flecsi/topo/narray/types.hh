@@ -147,10 +147,6 @@ struct narray_base {
     flog_assert(a.span().size() == intervals.size(), "interval size mismatch");
     std::size_t i{0};
     for(auto it : intervals) {
-#if 0
-      flog(warn) << "a[" << i << "] = intervals::make({" << it.first << ", "
-                 << it.second << "}, " << process() << ")" << std::endl;
-#endif
       a[i++] = data::intervals::make({it.first, it.second}, process());
     } // for
   }
@@ -166,10 +162,6 @@ struct narray_base {
         // p.first: local ghost offset
         // p.second: remote shared offset
         a[p.first] = data::points::make(si.first, p.second);
-#if 0
-        flog(warn) << "a[" << p.first << "] = points::make(" << si.first << ", "
-                   << p.second << ")" << std::endl;
-#endif
       } // for
     } // for
   }

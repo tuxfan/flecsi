@@ -140,7 +140,7 @@ private:
     };
 
     auto ptrs_task = [&ic](auto f) {
-                       execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points);
+      execute<set_ptrs<Policy::template privilege_count<S>>, mpi>(f, ic.points);
     };
 
     return {*this, num_intervals, dest_task, ptrs_task, util::constant<S>()};
@@ -188,64 +188,6 @@ private:
       auto const & cex = c.idx_colorings[i].extended;
       std::copy_n(cex[0].begin(), dimension, md.extended[i][0].begin());
       std::copy_n(cex[1].begin(), dimension, md.extended[i][1].begin());
-
-#if 0
-      std::stringstream ss;
-      ss << "global(" << i << "): (";
-      for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.global[i][a];
-        if(a < dimension - 1)
-          ss << ",";
-      }
-      flog(warn) << ss.str() << ")" << std::endl;
-      ss.str("");
-      ss << "offset(" << i << "): (";
-      for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.offset[i][a];
-        if(a < dimension - 1)
-          ss << ",";
-      }
-      flog(warn) << ss.str() << ")" << std::endl;
-      ss.str("");
-
-      ss << "extents(" << i << "): (";
-      for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.extents[i][a];
-        if(a < dimension - 1)
-          ss << ",";
-      }
-      flog(warn) << ss.str() << ")" << std::endl;
-      ss.str("");
-
-      ss << "logical(" << i << "): start (";
-      for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.logical[i][0][a];
-        if(a < dimension - 1)
-          ss << ",";
-      }
-      ss << ") end: (";
-      for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.logical[i][1][a];
-        if(a < dimension - 1)
-          ss << ",";
-      }
-      flog(warn) << ss.str() << ")" << std::endl;
-      ss.str("");
-
-      ss << "extended(" << i << "): start (";
-      for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.extended[i][0][a];
-        if(a < dimension - 1)
-          ss << ",";
-      }
-      ss << ") end: (";
-      for(std::size_t a{0}; a < dimension; ++a) {
-        ss << md.extended[i][1][a];
-        if(a < dimension - 1)
-          ss << ",";
-      }
-      flog(warn) << ss.str() << ")" << std::endl;
-#endif
     } // for
   } // set_meta
 
@@ -309,7 +251,7 @@ struct narray<Policy>::access {
     return !is_low<A>() && !is_high<A>();
   }
 
-  // This should be private with the Policy as a friend
+  // This should be protected
   auto & meta() {
     return meta_.get().meta;
   }
@@ -317,29 +259,30 @@ struct narray<Policy>::access {
   template<index_space S, axis A, range SE>
   std::size_t size() {
     auto const & md = meta_.get();
-    static_assert(std::size_t(SE) < hypercubes::size, "invalid size identifier");
+    static_assert(
+      std::size_t(SE) < hypercubes::size, "invalid size identifier");
     if constexpr(SE == range::logical) {
       return md.logical[S][1][A];
     }
-    else if(SE == range::extended) {
+    else if constexpr(SE == range::extended) {
       return md.extended[S][1][A];
     }
-    else if(SE == range::all) {
+    else if constexpr(SE == range::all) {
       return md.extents[S][A];
     }
-    else if(SE == range::boundary_low) {
+    else if constexpr(SE == range::boundary_low) {
       return md.logical[S][0][A] - md.extended[S][0][A];
     }
-    else if(SE == range::boundary_high) {
+    else if constexpr(SE == range::boundary_high) {
       return md.extended[S][1][A] - md.logical[S][1][A];
     }
-    else if(SE == range::ghost_low) {
+    else if constexpr(SE == range::ghost_low) {
       return md.logical[S][0][A];
     }
-    else if(SE == range::ghost_high) {
+    else if constexpr(SE == range::ghost_high) {
       return md.extents[S][A] - md.logical[S][1][A];
     }
-    else if(SE == range::global) {
+    else if constexpr(SE == range::global) {
       return md.global[S][A];
     }
   }
@@ -347,31 +290,32 @@ struct narray<Policy>::access {
   template<index_space S, axis A, range SE>
   auto extents() {
     auto const & md = meta_.get();
-    static_assert(std::size_t(SE) < hypercubes::size, "invalid extents identifier");
+    static_assert(
+      std::size_t(SE) < hypercubes::size, "invalid extents identifier");
     if constexpr(SE == range::logical) {
       return make_ids<S>(
         util::iota_view<util::id>(md.logical[S][0][A], md.logical[S][1][A]));
     }
-    else if(SE == range::extended) {
+    else if constexpr(SE == range::extended) {
       return make_ids<S>(
         util::iota_view<util::id>(md.extended[S][0][A], md.extended[S][1][A]));
     }
-    else if(SE == range::all) {
+    else if constexpr(SE == range::all) {
       return make_ids<S>(util::iota_view<util::id>(0, md.extents[S][A]));
     }
-    else if(SE == range::boundary_low) {
+    else if constexpr(SE == range::boundary_low) {
       return make_ids<S>(util::iota_view<util::id>(
         md.extended[S][0][A], md.extended[S][0][A] + size<S, A, SE>()));
     }
-    else if(SE == range::boundary_high) {
+    else if constexpr(SE == range::boundary_high) {
       return make_ids<S>(util::iota_view<util::id>(
         md.extended[S][1][A], md.extended[S][1][A] + size<S, A, SE>()));
     }
-    else if(SE == range::ghost_low) {
+    else if constexpr(SE == range::ghost_low) {
       return make_ids<S>(util::iota_view<util::id>(
         md.logical[S][0][A], md.logical[S][0][A] + size<S, A, SE>()));
     }
-    else if(SE == range::ghost_high) {
+    else if constexpr(SE == range::ghost_high) {
       return make_ids<S>(util::iota_view<util::id>(
         md.logical[S][1][A], md.logical[S][1][A] + size<S, A, SE>()));
     }
@@ -383,29 +327,30 @@ struct narray<Policy>::access {
   template<index_space S, axis A, range SE>
   std::size_t offset() {
     auto const & md = meta_.get();
-    static_assert(std::size_t(SE) < hypercubes::size, "invalid offset identifier");
+    static_assert(
+      std::size_t(SE) < hypercubes::size, "invalid offset identifier");
     if constexpr(SE == range::logical) {
       return md.logical[S][0][A];
     }
-    else if(SE == range::extended) {
+    else if constexpr(SE == range::extended) {
       return md.extended[S][0][A];
     }
-    else if(SE == range::all) {
+    else if constexpr(SE == range::all) {
       return md.extents[S][A];
     }
-    else if(SE == range::boundary_low) {
+    else if constexpr(SE == range::boundary_low) {
       return md.extended[S][0][A];
     }
-    else if(SE == range::boundary_high) {
+    else if constexpr(SE == range::boundary_high) {
       return md.logical[S][1][A];
     }
-    else if(SE == range::ghost_low) {
+    else if constexpr(SE == range::ghost_low) {
       return 0;
     }
-    else if(SE == range::ghost_high) {
+    else if constexpr(SE == range::ghost_high) {
       return md.logical[S][1][A];
     }
-    else if(SE == range::global) {
+    else if constexpr(SE == range::global) {
       return md.offset[S][A];
     }
   }

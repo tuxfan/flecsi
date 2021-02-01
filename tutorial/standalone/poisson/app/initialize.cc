@@ -3,19 +3,17 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
-
-#include <flecsi/flog.hh>
-
+#include "initialize.hh"
 #include "options.hh"
 #include "specialization/control.hh"
 #include "state.hh"
 
-namespace poisson {
-namespace action {
+#include <flecsi/flog.hh>
+
+using namespace flecsi;
 
 int
-init_mesh() {
+poisson::action::init_mesh() {
   flog(info) << "Initializing " << x_extents.value() << "x" << y_extents.value()
              << " mesh" << std::endl;
   flecsi::log::flush();
@@ -33,11 +31,5 @@ init_mesh() {
   geometry[1] = geometry[0];
 
   m.allocate(coloring.get(), geometry);
-
   return 0;
 } // init_mesh
-
-control::action<init_mesh, cp::initialize> init_mesh_action;
-
-} // namespace action
-} // namespace poisson

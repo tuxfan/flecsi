@@ -3,11 +3,16 @@
   All rights reserved
  *----------------------------------------------------------------------------*/
 
-#pragma once
+#include "problem.hh"
+#include "state.hh"
+#include "tasks/init.hh"
 
-#include "flecsi/execution.hh"
+#include <flecsi/execution.hh>
 
-flecsi::program_option<std::size_t>
-  x_extents("x-extents", "The x extents of the mesh.", 1);
-flecsi::program_option<std::size_t>
-  y_extents("y-extents", "The y extents of the mesh.", 1);
+using namespace flecsi;
+
+int
+poisson::action::problem() {
+  execute<task::eggcarton>(m, ud(m), fd(m), sd(m));
+  return 0;
+} // problem
