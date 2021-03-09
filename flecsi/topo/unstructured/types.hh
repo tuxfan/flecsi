@@ -130,6 +130,19 @@ transpose(field<util::id, data::ragged>::accessor<ro, na> input,
   }
 }
 
+struct coloring_defintion {
+  std::size_t idx_spc;
+  std::size_t dim;
+  std::size_t depth;
+
+  struct auxiliary {
+    std::size_t idx_spc;
+    std::size_t dim;
+  };
+
+  std::vector<auxiliary> aux;
+};
+
 } // namespace unstructured_impl
 
 struct unstructured_base {
@@ -184,6 +197,8 @@ struct unstructured_base {
     std::vector<std::vector<crs>> cnx_colorings;
   };
 
+  using layout = std::map<std::size_t, std::size_t>;
+
   static std::size_t idx_size(index_coloring const & ic, std::size_t) {
     return ic.owned.size() + ic.ghosts.size();
   }
@@ -194,6 +209,7 @@ struct unstructured_base {
     point offsets. The references num_intervals, intervals,
     and points, respectively, are filled with this information.
    */
+
   template<std::size_t N>
   static void idx_itvls(index_coloring const & ic,
     std::vector<std::size_t> & num_intervals,
@@ -202,6 +218,7 @@ struct unstructured_base {
       src_points,
     field<util::id>::accessor1<privilege_cat(privilege_repeat(wo, N - (N > 1)),
       privilege_repeat(na, N > 1))> fmd,
+    std::map<std::size_t, std::size_t> & rmap,
     MPI_Comm const & comm) {
     std::vector<std::size_t> entities;
 
@@ -230,7 +247,7 @@ struct unstructured_base {
     util::force_unique(entities);
 
     /*
-      Initialize the local to MIS map.
+      Initialize the forward and reverse maps.
      */
 
     flog_assert(entities.size() == (ic.owned.size() + ic.ghosts.size()),
@@ -240,7 +257,8 @@ struct unstructured_base {
 
     std::size_t off{0};
     for(auto e : entities) {
-      fmd[off++] = e;
+      fmap[off] = e;
+      rmap[e] = off++;
     }
 
     /*

@@ -162,7 +162,7 @@ compute_closure() {
       sd, colors, raw, primaries, c2v, v2c, c2c, m2p, p2m);
 #endif
 
-#if 0
+#if 1
     flog(info) << "V2C CONNECTIVITIES" << std::endl;
     for(auto const & v : v2c) {
       std::stringstream ss;

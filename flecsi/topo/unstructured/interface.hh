@@ -108,6 +108,9 @@ struct unstructured : unstructured_base,
     return forward_map_.template get<S>();
   }
 
+  template<index_space S>
+  auto reverse_map() && { return std::move(reverse_map_[S]); }
+
   template<typename Type,
     data::layout Layout,
     typename Topo,
@@ -143,7 +146,7 @@ private:
 
     auto const & fmd = forward_map_.template get<S>();
     execute<idx_itvls<NP>, mpi>(
-      ic, num_intervals, intervals, points, fmd(*this), comm);
+      ic, num_intervals, intervals, points, fmd(*this), reverse_map_[S], comm);
 
     // clang-format off
     auto dest_task = [&intervals, &comm](auto f) {
@@ -199,6 +202,8 @@ private:
   void init_ragged(util::constants<SS...>) {
     (this->template extend_offsets<SS>(), ...);
   }
+
+  util::key_array<std::map<std::size_t, std::size_t>, index_spaces> reverse_map_;
 }; // struct unstructured
 
 /*----------------------------------------------------------------------------*
