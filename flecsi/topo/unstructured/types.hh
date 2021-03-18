@@ -130,13 +130,14 @@ transpose(field<util::id, data::ragged>::accessor<ro, na> input,
   }
 }
 
-struct coloring_defintion {
-  std::size_t idx_spc;
+struct coloring_definition {
+  std::size_t colors;
+  std::size_t idx;
   std::size_t dim;
   std::size_t depth;
 
   struct auxiliary {
-    std::size_t idx_spc;
+    std::size_t idx;
     std::size_t dim;
   };
 
@@ -151,7 +152,7 @@ struct unstructured_base {
   using ghost_entity = unstructured_impl::ghost_entity;
   using crs = unstructured_impl::crs;
 
-  struct coloring {
+  struct process_color {
     /*
       The current coloring utilities and topology initialization assume
       the use of MPI. This could change in the future, e.g., if legion
@@ -163,7 +164,7 @@ struct unstructured_base {
     MPI_Comm comm;
 
     /*
-      The number of colors in this coloring
+      The global number of colors
      */
 
     std::size_t colors;
@@ -197,7 +198,7 @@ struct unstructured_base {
     std::vector<std::vector<crs>> cnx_colorings;
   };
 
-  using layout = std::map<std::size_t, std::size_t>;
+  using coloring = std::map<std::size_t, process_color>;
 
   static std::size_t idx_size(index_coloring const & ic, std::size_t) {
     return ic.owned.size() + ic.ghosts.size();
@@ -256,9 +257,12 @@ struct unstructured_base {
                        << ")");
 
     std::size_t off{0};
+    (void)rmap;
     for(auto e : entities) {
-      fmap[off] = e;
-      rmap[e] = off++;
+      fmap[off++] = e;
+      // FIXME: adding reverse map
+      //flog(trace) << "off: " << off << " e: " << e << std::endl;
+      //rmap[e] = off++;
     }
 
     /*
