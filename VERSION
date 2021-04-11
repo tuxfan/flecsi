@@ -44,14 +44,9 @@ sha=${DESCRIBE[2]}
 
 # Devel branch
 if [[ ${describe:0:1} == "d" ]]; then
-  version=`echo ${DESCRIBE[0]} | sed 's,d,,'`
-  IFS='.'
-  read -ra VERSION <<< "$version"
-  major=${VERSION[0]}
-  merge=${VERSION[1]}
+  major=`echo ${DESCRIBE[0]} | sed 's,d,,'`
   commits=${DESCRIBE[1]}
-  echo "devel $major ($commits commits ahead at $sha,"\
-    "with $merge downstream merges)"
+  echo "devel $major ($commits commits ahead at $sha)"
 
 # Feature branch
 elif [[ ${describe:0:1} == "f" ]]; then
@@ -65,6 +60,8 @@ elif [[ ${describe:0:1} == "f" ]]; then
   if (( $commits > 0 )); then
     echo "feature $major.$minor ($commits commits ahead at $sha,"\
       "with $merge downstream merges)"
+  elif (( $merge > 1)); then
+    echo "feature $major.$minor ($merge downstream merges)"
   else
     echo "feature $major.$minor"
   fi
