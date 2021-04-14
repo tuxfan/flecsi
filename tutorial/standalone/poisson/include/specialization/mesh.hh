@@ -148,6 +148,22 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
   using grect = std::array<std::array<double, 2>, 2>;
 
+  static void set_meta(
+    mesh::accessor<flecsi::rw> sm,
+    typename field<meta_data, flecsi::data::single>::template accessor<wo> m,
+    grect const & g) {
+    meta_data & md = m;
+    double xdelta = std::abs(g[0][1] - g[0][0]) /
+                    (sm.size<x_axis, global>() - 1);
+    double ydelta = std::abs(g[1][1] - g[1][0]) /
+                    (sm.size<y_axis, global>() - 1);
+    flog_assert(xdelta == ydelta, "invalid extents: deltas must be equal");
+
+    md.delta = xdelta;
+  }
+
+
+#if 0
   static void init_geometry(mesh::accessor<flecsi::rw> m,
     coloring const & c,
     grect const & geometry) {
@@ -159,11 +175,12 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
     m.meta().delta = xdelta;
   }
+#endif
 
   static void initialize(flecsi::data::topology_slot<mesh> & s,
-    coloring const & c,
-    grect const & geometry) {
-    flecsi::execute<init_geometry, flecsi::mpi>(s, c, geometry);
+    coloring const &, grect const & geometry) {
+    flecsi::execute<set_meta, flecsi::mpi>(s, flecsi::topo::narray<mesh>::policy_meta_data(s), geometry);
+    //flecsi::execute<init_geometry, flecsi::mpi>(s, c, geometry);
   } // initialize
 
 }; // struct mesh
