@@ -231,6 +231,8 @@ struct narray<Policy>::access {
     range::ghost_high,
     range::global>;
 
+  auto & meta() { return policy_meta_; }
+
   template<index_space S, axis A>
   bool is_low() {
     return (meta_->faces[S] >> A * 2) & narray_impl::low;

@@ -66,7 +66,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     template<axis A, range SE = interior>
     auto vertices() {
       if constexpr(SE == interior) {
-        auto const & md = B::meta_.get();
+        auto const & md = *(this->meta_);
         return flecsi::topo::make_ids<index_space::vertices>(
           flecsi::util::iota_view<flecsi::util::id>(
             md.logical[index_space::vertices][0][A] + 1,
@@ -82,8 +82,8 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     double delta() {
-      return B::meta().delta;
-    } // delta
+      return (*(this->policy_meta_)).delta;
+    }
 
     template<axis A>
     double value(std::size_t i) {
@@ -179,7 +179,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
 
   static void initialize(flecsi::data::topology_slot<mesh> & s,
     coloring const &, grect const & geometry) {
-    flecsi::execute<set_meta, flecsi::mpi>(s, flecsi::topo::narray<mesh>::policy_meta_data(s), geometry);
+    flecsi::execute<set_meta, flecsi::mpi>(s, core::policy_meta_field(s->meta), geometry);
     //flecsi::execute<init_geometry, flecsi::mpi>(s, c, geometry);
   } // initialize
 
