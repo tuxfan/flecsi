@@ -38,6 +38,7 @@ namespace topo {
 
 template<typename Policy>
 struct narray : narray_base, with_ragged<Policy>, with_meta<Policy> {
+
   using index_space = typename Policy::index_space;
   using index_spaces = typename Policy::index_spaces;
   using axis = typename Policy::axis;
