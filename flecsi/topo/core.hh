@@ -15,10 +15,6 @@
 
 /*! file */
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
-
 #include <cstddef> // size_t
 
 #include "flecsi/data/privilege.hh"
@@ -105,6 +101,8 @@ struct specialization_base {
 
   specialization_base() = delete;
 };
+/// Convenience base class for specialization class templates.
+struct help : specialization_base {}; // intervening class avoids warnings
 
 /// CRTP base for specializations.
 /// \tparam C core topology

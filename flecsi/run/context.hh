@@ -14,11 +14,8 @@
 #pragma once
 
 /*! @file */
-#include <flecsi-config.h>
 
-#if !defined(__FLECSI_PRIVATE__)
-#error Do not include this file directly!
-#endif
+#include <flecsi-config.h>
 
 #include "flecsi/data/field_info.hh"
 #include "flecsi/flog.hh"
@@ -72,18 +69,6 @@ struct context {
    *--------------------------------------------------------------------------*/
 
   using field_info_store_t = data::fields;
-
-  /*!
-    This type allows storage of subspace information.
-    @todo Currently only for unstructured mesh types. However, this needs to be
-    extended.)
-   */
-
-  struct index_subspace_info_t {
-    size_t index_subspace;
-    size_t capacity;
-    size_t size = 0;
-  }; // struct index_subspace_info_t
 
   /*--------------------------------------------------------------------------*
     Deleted contructor and assignment interfaces.
@@ -504,49 +489,6 @@ struct context {
     return tita->second[Topo::index_spaces::template index<Index>];
   } // get_field_info_store
 
-  /*!
-FIXME: Do we need to make this general for other topology types? This is
-currently only for unstructured mesh topologies.
-
-    Add an index subspace to the specified index space with the specified
-    capcity.
-
-    @param index_space The parent index space.
-    @param capacity    The maximum size of the subspace in indices.
-   */
-
-  void add_index_subspace(size_t index_subspace, size_t capacity) {
-    index_subspace_info_t info;
-    info.index_subspace = index_subspace;
-    info.capacity = capacity;
-
-    index_subspace_map_.emplace(index_subspace, std::move(info));
-  }
-
-  /*!
-FIXME: Do we need to make this general for other topology types? This is
-currently only for unstructured mesh topologies.
-
-    Add an index subspace struct instance.
-
-    @param info An initialized instance of index_subspace_info_t.
-   */
-
-  void add_index_subspace(const index_subspace_info_t & info) {
-    index_subspace_map_.emplace(info.index_subspace, info);
-  }
-
-  /*!
-FIXME: Do we need to make this general for other topology types? This is
-currently only for unstructured mesh topologies.
-
-    Return the map of index subspaces.
-   */
-
-  std::map<size_t, index_subspace_info_t> & index_subspace_info() {
-    return index_subspace_map_;
-  }
-
   /*--------------------------------------------------------------------------*
     Task Launch interface.
    *--------------------------------------------------------------------------*/
@@ -648,13 +590,6 @@ protected:
 
   std::unordered_map<size_t, std::vector<field_info_store_t>>
     topology_field_info_map_;
-
-  /*
-    This type allows storage of runtime index subspace information.
-    The size_t key is the index subspace identifier.
-   */
-
-  std::map<size_t, index_subspace_info_t> index_subspace_map_;
 
   /*--------------------------------------------------------------------------*
     Task count.
