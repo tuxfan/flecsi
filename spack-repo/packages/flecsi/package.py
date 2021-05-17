@@ -93,6 +93,7 @@ class Flecsi(CMakePackage):
 
     depends_on('legion@ctrl-rep-10:ctrl-rep-99',when='backend=legion')
     depends_on('legion+hdf5',when='backend=legion +hdf5')
+    depends_on('legion+shared',when='backend=legion +shared')
 
     # Metis
 

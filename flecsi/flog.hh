@@ -54,6 +54,18 @@ struct stream<T,
     o << t;
   }
 };
+template<class T, std::size_t N>
+struct stream<std::array<T,N>> {
+  static void put(std::ostream & o, std::array<T,N> const & c) {
+    std::size_t i{0};
+    o << "<";
+    for(auto & t: c) {
+      o << t;
+      if(++i < c.size()) o << ", ";
+    }
+    o << ">";
+  }
+};
 template<template<typename, typename> typename C, typename T, typename A>
 struct stream<C<T, A>> {
   static void put(std::ostream & o, C<T, A> const & c) {

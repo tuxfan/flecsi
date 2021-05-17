@@ -58,7 +58,7 @@ make_dcrs(MD const & md,
    */
 
   auto c2v =
-    util::mpi::one_to_allv<pack_cells<MD>>({md, cm.distribution()}, comm);
+    util::mpi::one_to_alli<pack_cells<MD>>({md, cm.distribution()}, comm);
 
   /*
     Create a map of vertex-to-cell connectivity information from
@@ -213,7 +213,7 @@ migrate(util::dcrs const & naive,
 
   std::map<Color, std::vector<std::size_t>> primaries;
   std::vector<std::size_t> p2m; /* process to mesh map */
-  std::map<std::size_t, std::size_t> m2p;
+  std::map<std::size_t, std::size_t> m2p; /* mesh to process map */
 
   for(auto const & r : migrated) {
     auto const & cell_pack = std::get<0>(r);
@@ -274,6 +274,17 @@ color(MD const & md,
 
   std::unordered_map<std::size_t, std::set<Color>> dependents, dependencies;
   std::unordered_map<Color, std::set<std::size_t>> shared, ghosts;
+
+  /*
+    The gist of this loop is to add layers entities out to the depth specified
+    by the input arguments. Additional information about vertex connectivity is
+    also collected.
+
+    Each iteration of the loop creates a "layer" of entities that need to be
+    requested for that depth of the halo. The working set "wkset" is the
+    current collection of entities including layers that were added during
+    previous iterations.
+   */
 
   const std::size_t depth = cd.depth;
   for(std::size_t d{0}; d < depth + 1; ++d) {
@@ -412,13 +423,13 @@ color(MD const & md,
         } // for
       } // for
 
-      // vertex-to-cell connectivity
+      // vertex-to-entity connectivity
       auto v2e_pack = std::get<1>(r);
       for(auto const & v : v2e_pack) {
         v2e.try_emplace(v.first, v.second);
       } // for
 
-      // cell-to-cell connectivity
+      // entity-to-entity connectivity
       auto e2e_pack = std::get<2>(r);
       for(auto const & e : e2e_pack) {
         e2e.try_emplace(e.first, e.second);
@@ -432,7 +443,6 @@ color(MD const & md,
     coloring[p.first].idx_colorings.resize(1 + cd.aux.size());
 
     auto & primary = coloring.at(p.first).idx_colorings[cd.idx];
-    // primary.owned = p.second;
     primary.owned.reserve(p.second.size());
     primary.owned.insert(
       primary.owned.begin(), p.second.begin(), p.second.end());
@@ -461,7 +471,10 @@ color(MD const & md,
     std::stringstream ss;
     ss << "color " << p.first << std::endl;
     ss << log::container{primary.owned} << std::endl;
+    ss << log::container{primary.shared} << std::endl;
+    ss << log::container{primary.ghosts} << std::endl;
 
+#if 0
     ss << "shared:" << std::endl;
     for(auto e : primary.shared) {
       ss << "  " << e.id << ": { ";
@@ -477,10 +490,47 @@ color(MD const & md,
       ss << "(" << e.id << ", " << e.color << ") ";
     } // for
     ss << std::endl;
+#endif
 
-    flog(warn) << ss.str() << std::endl;
+  flog(warn) << ss.str() << std::endl;
 #endif
   } // for
+
+#if 0
+  std::stringstream ss;
+  for(auto c: e2co) {
+    ss << "cell " << c.first << ": " << c.second << std::endl;
+  }
+  flog(warn) << ss.str() << std::endl;
+#endif
+
+  std::unordered_map<std::size_t, Color> v2co;
+  for(auto const & v: v2e) {
+    Color co = std::numeric_limits<Color>::max();
+    for(auto const e: v.second) {
+      co = std::min(e2co[e], co);
+    } // for
+    v2co[v.first] = co;
+  } // for
+
+  {
+  std::stringstream ss;
+  for(auto c: v2co) {
+    ss << "vertex " << c.first << ": " << c.second << std::endl;
+  }
+  flog(warn) << ss.str() << std::endl;
+  }
+
+  util::color_map cm(size, cd.colors, md.num_entities(0));
+  flog(warn) << cm << std::endl;
+
+  auto coords = util::mpi::one_to_alli<pack_vertices<MD>>({md, cm.distribution()}, comm);
+
+  {
+  std::stringstream ss;
+  ss << log::container{coords} << std::endl;
+  flog(warn) << ss.str();
+  }
 
 #if 0
   for(auto p : primaries) {
