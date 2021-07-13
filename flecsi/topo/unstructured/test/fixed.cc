@@ -105,6 +105,36 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     // clang-format off
     return
       {
+        MPI_COMM_WORLD,
+        fixed::colors,
+        {
+          { process(), 0 }
+        },
+        { /* over index spaces */
+          { /* over process colors */
+            base::process_color{
+              fixed::num_cells,
+              fixed::cells[process()],
+              {
+                fixed::connectivity[process()][0].indices.size()
+              },
+              {
+                fixed::connectivity[process()]
+              }
+            }
+          },
+          {
+            base::process_color{
+              fixed::num_vertices,
+              fixed::vertices[process()],
+              {
+                fixed::connectivity[process()][0].indices.size(),
+              },
+              {{}} /* use cell connectivity transpose */
+            }
+          }
+        }
+#if 0
         {
           MPI_COMM_WORLD,
           process(),
@@ -116,7 +146,8 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
           fixed::cnx_allocs[process()],
           fixed::cnx_colorings[process()]
         }
-      };
+#endif
+    };
     // clang-format on
   } // color
 
@@ -160,7 +191,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       mesh ordering, i.e., the cells are sorted by ascending mesh id.
      */
 
-    auto cell_coloring = c.at(0).idx_colorings[0];
+    auto cell_coloring = c.idx_spaces[0][0].coloring;
     global::cells.clear();
     for(auto e : cell_coloring.owned) {
       global::cells.push_back(e);
@@ -177,7 +208,7 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
       mesh ordering, i.e., the vertices are sorted by ascending mesh id.
      */
 
-    auto vertex_coloring = c.at(0).idx_colorings[1];
+    auto vertex_coloring = c.idx_spaces[1][0].coloring;
     global::vertices.clear();
     for(auto e : vertex_coloring.owned) {
       global::vertices.push_back(e);
@@ -197,7 +228,8 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
 
     auto & c2v =
       s->connect_.get<fixed_mesh::cells>().get<fixed_mesh::vertices>();
-    execute<init_c2v, mpi>(c2v(s), c.at(0).cnx_colorings[0][0], vertex_map);
+    execute<init_c2v, mpi>(
+      c2v(s), c.idx_spaces[0][0].cnx_colorings[0], vertex_map);
 
     auto & v2c =
       s->connect_.get<fixed_mesh::vertices>().get<fixed_mesh::cells>();

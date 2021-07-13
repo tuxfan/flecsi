@@ -50,18 +50,15 @@ struct unstructured : unstructured_base,
   struct access;
 
   unstructured(coloring const & c)
-    : with_ragged<Policy>(c[0].colors), with_meta<Policy>(c[0].colors),
+    : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
       part_(make_partitions(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
       plan_(make_plans(c,
         index_spaces(),
         std::make_index_sequence<index_spaces::size>())),
-      special_(c[0].colors) {
+      special_(c.colors) {
     allocate_connectivities(c, connect_);
-#if 0
-    make_subspaces(c, std::make_index_sequence<index_spaces::size>());
-#endif
   }
 
   static inline const connect_t<Policy> connect_;
@@ -78,7 +75,6 @@ struct unstructured : unstructured_base,
 
   static inline const typename key_define<util::id, index_spaces>::type
     forward_map_;
-  //  util::key_array<repartition, index_spaces> map_;
 
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
@@ -129,15 +125,16 @@ private:
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
     (print(Value, Index), ...);
-    flog_assert(c[0].idx_colorings.size() == sizeof...(Value),
-      c[0].idx_colorings.size()
-        << " sizes for " << sizeof...(Value) << " index spaces");
+    flog_assert(c.idx_spaces.size() == sizeof...(Value),
+      c.idx_spaces.size() << " sizes for " << sizeof...(Value)
+                          << " index spaces");
     return {{make_repartitioned<Policy, Value>(
-      c[0].colors, make_partial<idx_size>(c[0].idx_colorings[Index]))...}};
+      c.colors, make_partial<idx_size>(c.idx_spaces[Index], c.g2l))...}};
   }
 
   template<index_space S>
-  data::copy_plan make_plan(index_coloring const & ic, MPI_Comm const & comm) {
+  data::copy_plan make_plan(std::vector<process_color> const & ic,
+    MPI_Comm const & comm) {
     constexpr PrivilegeCount NP = Policy::template privilege_count<S>;
 
     std::vector<std::size_t> num_intervals;
@@ -145,7 +142,7 @@ private:
     std::map<Color, std::vector<std::pair<std::size_t, std::size_t>>> points;
 
     auto const & fmd = forward_map_.template get<S>();
-    execute<idx_itvls<NP>, mpi>(ic,
+    execute<idx_itvls<NP>, mpi>(ic[0].coloring,
       num_intervals,
       intervals,
       points,
@@ -172,10 +169,10 @@ private:
     unstructured_base::coloring const & c,
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>) {
-    flog_assert(c[0].idx_colorings.size() == sizeof...(Value),
-      c[0].idx_colorings.size()
-        << " sizes for " << sizeof...(Value) << " index spaces");
-    return {{make_plan<Value>(c[0].idx_colorings[Index], c[0].comm)...}};
+    flog_assert(c.idx_spaces.size() == sizeof...(Value),
+      c.idx_spaces.size() << " sizes for " << sizeof...(Value)
+                          << " index spaces");
+    return {{make_plan<Value>(c.idx_spaces[Index], c.comm)...}};
   }
 
   /*
@@ -185,6 +182,7 @@ private:
     entity types a, b, and c, a could connect to b and c, etc.
 
     @param VV Entity constants from the user's policy.
+    @param TT Connectivity targets.
    */
 
   template<auto... VV, typename... TT>
@@ -193,24 +191,15 @@ private:
     std::size_t entity = 0;
     (
       [&](TT const & row) { // invoked for each from-entity
-        auto & cc = c[0].cnx_allocs[entity++];
+        auto & pc = c.idx_spaces[entity++]; // std::vector<process_color>
         std::size_t is{0};
         for(auto & fd : row) { // invoked for each to-entity
           auto & p = this->ragged.template get_partition<VV>(fd.fid);
-          execute<cnx_size>(cc[is++], p.sizes());
+          execute<cnx_size>(pc, is++, p.sizes());
         }
       }(connect_.template get<VV>()),
       ...);
   }
-
-#if 0
-  template<std::size_t... Index>
-  void make_subspaces(unstructured_base::coloring const & c,
-    std::index_sequence<Index...>) {
-   // auto & owned = owned_.get<>().get<>();
-  //  execute<idx_subspaces>(c[Index], owned_.get<Index>
-  }
-#endif
 
   util::key_array<std::map<std::size_t, std::size_t>, index_spaces>
     reverse_map_;
@@ -244,7 +233,6 @@ private:
 
 public:
   using subspace_list = std::size_t;
-  // using subspace_list = typename unstructured::subspace_list;
   access() : connect_(unstructured::connect_) {}
 
   /*!
@@ -275,24 +263,6 @@ public:
   template<index_space I, entity_list L>
   auto special_entities() const {
     return make_ids<I>(special_.template get<I>().template get<L>().span());
-  }
-
-  template<index_space I, subspace_list L>
-  auto subspace_entities() const {
-#if 0
-    if constexpr(L == owned) {
-      return make_ids<I>(owned_.template get<I>().template get<L>()[0]);
-    }
-    else if(L == exclusive) {
-      return make_ids<I>(exclusive_.template get<I>().template get<L>()[0]);
-    }
-    else if(L == shared) {
-      return make_ids<I>(shared_.template get<I>().template get<L>()[0]);
-    }
-    else {
-      return make_ids<I>(ghost_.template get<I>().template get<L>()[0]);
-    }
-#endif
   }
 
   template<class F>

@@ -142,7 +142,17 @@ operator<<(std::ostream & stream, index_coloring const & ic) {
          << "extended (high)" << std::endl
          << log::container{ic.extended[1]} << std::endl;
   return stream;
-}
+} // operator<<
+
+struct new_coloring {
+  MPI_Comm comm;
+  Color colors;
+
+  std::vector</* over index spaces */
+    std::vector</* over process colors */
+      index_coloring>>
+    idx_colorings;
+}; // struct new_coloring
 
 } // namespace narray_impl
 
