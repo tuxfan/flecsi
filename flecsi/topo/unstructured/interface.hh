@@ -129,7 +129,7 @@ private:
       c.idx_spaces.size() << " sizes for " << sizeof...(Value)
                           << " index spaces");
     return {{make_repartitioned<Policy, Value>(
-      c.colors, make_partial<idx_size>(c.idx_spaces[Index], c.g2l))...}};
+      c.colors, make_partial<idx_size>(c.partitions[Index]))...}};
   }
 
   template<index_space S>

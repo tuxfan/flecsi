@@ -108,7 +108,18 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
         MPI_COMM_WORLD,
         fixed::colors,
         {
-          { process(), 0 }
+          {
+            fixed::cells[0].all.size(),
+            fixed::cells[1].all.size(),
+            fixed::cells[2].all.size(),
+            fixed::cells[3].all.size()
+          },
+          {
+            fixed::vertices[0].all.size(),
+            fixed::vertices[1].all.size(),
+            fixed::vertices[2].all.size(),
+            fixed::vertices[3].all.size()
+          }
         },
         { /* over index spaces */
           { /* over process colors */
@@ -134,19 +145,6 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
             }
           }
         }
-#if 0
-        {
-          MPI_COMM_WORLD,
-          process(),
-          fixed::colors,
-          {
-            fixed::num_cells, fixed::num_vertices
-          },
-          fixed::idx_colorings[process()],
-          fixed::cnx_allocs[process()],
-          fixed::cnx_colorings[process()]
-        }
-#endif
     };
     // clang-format on
   } // color

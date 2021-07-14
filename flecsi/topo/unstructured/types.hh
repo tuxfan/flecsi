@@ -192,7 +192,11 @@ struct unstructured_base {
   struct coloring {
     MPI_Comm comm;
     Color colors; /* global number of colors */
-    std::map<std::size_t, std::size_t> g2l; /* global to local color map */
+
+    std::vector</* over index spaces */
+      std::vector</* over global colors */
+        std::size_t>>
+      partitions;
 
     std::vector</* over index spaces */
       std::vector</* over process colors */
@@ -200,10 +204,8 @@ struct unstructured_base {
       idx_spaces;
   }; // struct coloring
 
-  static std::size_t idx_size(std::vector<process_color> vpc,
-    std::map<std::size_t, std::size_t> const & m,
-    std::size_t c) {
-    return vpc[m.at(c)].coloring.all.size();
+  static std::size_t idx_size(std::vector<std::size_t> vs, std::size_t c) {
+    return vs[c];
   }
 
   /*
@@ -367,7 +369,7 @@ struct unstructured_base {
       Gather global interval sizes.
      */
 
-    num_intervals = util::mpi::all_gather(local_itvls, comm);
+    num_intervals = util::mpi::all_gatherv(local_itvls, comm);
   } // idx_itvls
 
   static void set_dests(field<data::intervals::Value>::accessor<wo> a,

@@ -522,6 +522,7 @@ color(MD const & md,
 
   coloring.comm = comm;
   coloring.colors = cd.colors; /* global colors */
+  coloring.partitions.resize(2 + cd.aux.size());
   coloring.idx_spaces.resize(2 + cd.aux.size());
 
   /*
@@ -529,11 +530,11 @@ color(MD const & md,
    */
 
   coloring.idx_spaces[cd.idx].resize(primaries.size());
+  coloring.idx_spaces[cd.vidx].resize(primaries.size());
 
   std::size_t c{0};
+  std::vector<std::size_t> partitions;
   for(auto p : primaries) {
-    coloring.g2l.try_emplace(p.first, c);
-
     auto & pc = coloring.idx_spaces[cd.idx][c];
     pc.entities = ne;
 
@@ -566,6 +567,8 @@ color(MD const & md,
     util::force_unique(pc.coloring.shared);
     util::force_unique(pc.coloring.ghost);
 
+    partitions.emplace_back(pc.coloring.all.size());
+
     // These may not all be used, but we allocate and populate them anyway.
     pc.cnx_allocs.resize(2 + cd.aux.size());
     pc.cnx_colorings.resize(2 + cd.aux.size());
@@ -595,6 +598,22 @@ color(MD const & md,
 
     ++c;
   } // for
+
+  {
+    auto pgthr = util::mpi::all_gatherv(partitions, comm);
+
+    coloring.partitions[cd.idx].resize(cd.colors);
+    util::color_map em(size, cd.colors, ne);
+    std::size_t p{0};
+    for(auto vp : pgthr) {
+      std::size_t c{0};
+      for(auto v : vp) {
+        coloring.partitions[cd.idx][em.color_id(p, c)] = v;
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
 
   /*
     Assign vertex colors.
@@ -798,15 +817,38 @@ color(MD const & md,
    */
 
   c = 0;
+  partitions.clear();
   for(auto p : primaries) {
     auto vaux = coloring.idx_spaces[cd.vidx][c].coloring;
 
+    vaux.all.reserve(vaux.owned.size());
+    vaux.all.insert(vaux.all.begin(), vaux.owned.begin(), vaux.owned.end());
+
     for(auto v : ghost.at(p.first)) {
       vaux.ghost.emplace_back(ghost_entity{v, v2co.at(v)});
+      vaux.all.emplace_back(v);
     } // for
 
+    util::force_unique(vaux.all);
     util::force_unique(vaux.ghost);
+
+    partitions.emplace_back(vaux.all.size());
   } // for
+
+  {
+    auto pgthr = util::mpi::all_gatherv(partitions, comm);
+
+    coloring.partitions[cd.vidx].resize(cd.colors);
+    std::size_t p{0};
+    for(auto vp : pgthr) {
+      std::size_t c{0};
+      for(auto v : vp) {
+        coloring.partitions[cd.vidx][cm.color_id(p, c)] = v;
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
 
   /*
     Auxiliary entities.
