@@ -111,6 +111,12 @@ struct unstructured : unstructured_base,
 
 private:
   /*
+    Communication graph topology for ragged ghost updates.
+   */
+
+  struct ctopo : specialization<user, ctopo> {};
+
+  /*
     Return the forward map (local-to-global) for the given index space.
    */
 
@@ -157,8 +163,8 @@ private:
     util::constants<Value...> /* index spaces to deduce pack */,
     std::index_sequence<Index...>)
     : with_ragged<Policy>(c.colors), with_meta<Policy>(c.colors),
-      part_{{make_repartitioned<Policy, Value>(c.colors,
-        make_partial<idx_size>(c.partitions[Index]))...}},
+      ctopo_(c.remotes), part_{{make_repartitioned<Policy, Value>(c.colors,
+                           make_partial<idx_size>(c.partitions[Index]))...}},
       plan_{{make_copy_plan<Value>(c.colors,
         c.idx_spaces[Index],
         part_[Index],
@@ -185,11 +191,13 @@ private:
       points;
 
     auto const & fmd = forward_map_.template get<S>();
+    auto const & cg = cgraph_.template get<S>();
 
     execute<idx_itvls<NP>, mpi>(vpc,
       num_intervals,
       intervals,
       points,
+      cg(ctopo_),
       fmd(*this),
       reverse_maps_.template get<S>(),
       comm);
@@ -252,6 +260,12 @@ private:
   static inline const typename key_define<util::id, index_spaces>::type
     forward_map_;
 
+  typename ctopo::core ctopo_;
+  static inline const util::key_array<
+    typename field<unstructured_impl::cmap,
+      data::ragged>::template definition<ctopo>,
+    index_spaces>
+    cgraph_;
   util::key_array<repartitioned, index_spaces> part_;
   util::key_array<data::copy_plan, index_spaces> plan_;
   lists<Policy> special_;

@@ -534,6 +534,7 @@ color(MD const & md,
 
   std::size_t c{0};
   std::vector<std::size_t> partitions;
+  std::vector<std::size_t> remotes;
   for(auto p : primaries) {
     auto & pc = coloring.idx_spaces[cd.idx][c];
     pc.entities = ne;
@@ -556,10 +557,14 @@ color(MD const & md,
       } // if
     } // for
 
+    std::set<std::size_t> peers;
     for(auto e : ghost.at(p.first)) {
       pc.coloring.ghost.emplace_back(ghost_entity{e, e2co.at(e)});
+      peers.insert(e2co.at(e));
       pc.coloring.all.emplace_back(e);
     } // for
+
+    remotes.emplace_back(peers.size());
 
     util::force_unique(pc.coloring.all);
     util::force_unique(pc.coloring.owned);
@@ -613,6 +618,22 @@ color(MD const & md,
       std::size_t c{0};
       for(auto v : vp) {
         coloring.partitions[cd.idx][em.color_id(p, c)] = v;
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
+
+  {
+    auto rgthr = util::mpi::all_gatherv(remotes, comm);
+
+    coloring.remotes.resize(cd.colors);
+    util::color_map em(size, cd.colors, ne);
+    std::size_t p{0};
+    for(auto vp : rgthr) {
+      std::size_t c{0};
+      for(auto v : vp) {
+        coloring.remotes[em.color_id(p, c)] = v;
         ++c;
       } // for
       ++p;
@@ -826,6 +847,7 @@ color(MD const & md,
 
   c = 0;
   partitions.clear();
+  remotes.clear();
   for(auto p : primaries) {
     auto & vaux = coloring.idx_spaces[cd.vidx][c].coloring;
 
@@ -838,10 +860,13 @@ color(MD const & md,
     } // for
 
     // Add requested ghosts.
+    std::set<std::size_t> peers;
     for(auto v : ghost.at(p.first)) {
       vaux.ghost.emplace_back(ghost_entity{v, v2co.at(v)});
       vaux.all.emplace_back(v);
     } // for
+
+    remotes.emplace_back(peers.size());
 
     util::force_unique(vaux.all);
     util::force_unique(vaux.ghost);
@@ -866,6 +891,22 @@ color(MD const & md,
     } // for
   }
 
+  {
+    auto rgthr = util::mpi::all_gatherv(remotes, comm);
+
+    coloring.remotes.resize(cd.colors);
+    util::color_map em(size, cd.colors, ne);
+    std::size_t p{0};
+    for(auto vp : rgthr) {
+      std::size_t c{0};
+      for(auto v : vp) {
+        coloring.remotes[em.color_id(p, c)] =
+          std::max(v, coloring.remotes[em.color_id(p, c)]);
+        ++c;
+      } // for
+      ++p;
+    } // for
+  }
   /*
     Auxiliary entities.
    */

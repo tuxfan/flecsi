@@ -180,6 +180,16 @@ struct process_color {
   std::vector<crs> cnx_colorings;
 }; // struct process_color
 
+/*
+  Type for mapping ragged ghosts into buffers.
+ */
+
+struct cmap {
+  Color c;
+  std::size_t lid;
+  std::size_t rid;
+};
+
 } // namespace unstructured_impl
 
 struct unstructured_base {
@@ -188,10 +198,15 @@ struct unstructured_base {
   using process_color = unstructured_impl::process_color;
   using ghost_entity = unstructured_impl::ghost_entity;
   using crs = unstructured_impl::crs;
+  using cmap = unstructured_impl::cmap;
 
   struct coloring {
     MPI_Comm comm;
     Color colors; /* global number of colors */
+
+    std::vector</* over global colors */
+      std::size_t>
+      remotes;
 
     std::vector</* over index spaces */
       std::vector</* over global colors */
@@ -223,10 +238,13 @@ struct unstructured_base {
     std::vector<std::vector<std::pair<std::size_t, std::size_t>>> & intervals,
     std::vector<std::map<Color,
       std::vector<std::pair<std::size_t, std::size_t>>>> & points,
+    field<cmap, data::ragged>::mutator<wo> cgraph,
     field<util::id>::accessor1<privilege_cat<privilege_repeat<wo, N - (N > 1)>,
       privilege_repeat<na, (N > 1)>>> fmap,
     std::vector<std::map<std::size_t, std::size_t>> & rmaps,
     MPI_Comm const & comm) {
+
+    (void)cgraph;
 
     auto [rank, size] = util::mpi::info(comm);
 
@@ -334,6 +352,7 @@ struct unstructured_base {
       auto fulfilled = util::mpi::all_to_allv(
         [f = std::move(fulfills)](int r, int) { return std::move(f[r]); },
         comm);
+
       /*
         Setup source pointers.
        */
