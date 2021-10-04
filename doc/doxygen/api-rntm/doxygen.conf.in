@@ -1,0 +1,25 @@
+#------------------------------------------------------------------------------#
+# Values specific to this target.
+#------------------------------------------------------------------------------#
+
+PROJECT_NAME = "Runtime API"
+
+OUTPUT_DIRECTORY = @CMAKE_BINARY_DIR@/doc/sphinx/doxygen/api-rntm
+
+INPUT = @PROJECT_SOURCE_DIR@/flecsi \
+        @PROJECT_SOURCE_DIR@/doc/doxygen/api-rntm/mainpage.md \
+        @PROJECT_SOURCE_DIR@/doc/doxygen/api-rntm/doxygen-setup.h
+
+EXCLUDE_PATTERNS = @PROJECT_SOURCE_DIR@/flecsi/*.md \
+                   */test/*
+
+PREDEFINED = FLECSI_ENABLE_FLOG \
+             FLOG_ENABLE_MPI \
+             DOXYGEN
+
+WARN_LOGFILE = @CMAKE_BINARY_DIR@/api-rntm.out
+
+USE_MDFILE_AS_MAINPAGE = \
+  @PROJECT_SOURCE_DIR@/doc/doxygen/api-rntm/mainpage.md
+
+@INCLUDE = @CMAKE_BINARY_DIR@/.doxygen/api-rntm/project.conf
