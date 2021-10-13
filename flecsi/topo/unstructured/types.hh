@@ -120,7 +120,7 @@ struct crs {
 
 inline void
 transpose(field<util::id, data::ragged>::accessor<ro, na> input,
-  field<util::id, data::ragged>::mutator<rw, na> output) {
+  field<util::id, data::ragged>::mutator<wo, na> output) {
   for(std::size_t e{0}; e < input.size(); ++e) {
     for(std::size_t v{0}; v < input[e].size(); ++v) {
       output[input[e][v]].push_back(e);
