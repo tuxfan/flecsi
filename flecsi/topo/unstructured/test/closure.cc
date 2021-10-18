@@ -92,6 +92,7 @@ compute_closure() {
     auto [primaries, p2m, m2p] =
       topo::unstructured_impl::migrate(naive, colors, raw, c2v, v2c, c2c);
 
+    flog(info) << log::container{primaries} << std::endl;
 #if 0
     flog(info) << "PRIMARIES" << std::endl;
     for(auto co : primaries) {

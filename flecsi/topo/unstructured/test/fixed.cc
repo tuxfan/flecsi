@@ -107,9 +107,26 @@ struct fixed_mesh : topo::specialization<topo::unstructured, fixed_mesh> {
     return {
       MPI_COMM_WORLD,
       fixed::colors,
+      /* process_colors */
+      {
+        {
+          0
+        },
+        {
+          1
+        },
+        {
+          2
+        },
+        {
+          3
+        }
+      },
+      /* remotes */
       { /* over global colors */
         3, 3, 3, 3
       },
+      /* partitions */
       { /* over index spaces */
         { /* over global colors */
           fixed::cells[0].all.size(),

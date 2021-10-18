@@ -512,8 +512,6 @@ color(MD const & md,
     } // for
   } // for
 
-  // unstructured_base::coloring coloring(primaries.size());
-
   unstructured_base::coloring coloring;
 
   /*
@@ -535,7 +533,9 @@ color(MD const & md,
   std::size_t c{0};
   std::vector<std::size_t> partitions;
   std::vector<std::size_t> remotes;
+  std::vector<Color> process_colors;
   for(auto p : primaries) {
+    process_colors.emplace_back(p.first);
     auto & pc = coloring.idx_spaces[cd.idx][c];
     pc.entities = ne;
 
@@ -605,6 +605,12 @@ color(MD const & md,
   } // for
 
   /*
+    Gather the process-to-color mapping.
+   */
+
+  coloring.process_colors = util::mpi::all_gatherv(process_colors, comm);
+
+  /*
     Gather partition sizes for entities.
    */
 
@@ -623,6 +629,10 @@ color(MD const & md,
       ++p;
     } // for
   }
+
+  /*
+    Gather the communication graph, i.e., peer-to-peer communication pairs.
+   */
 
   {
     auto rgthr = util::mpi::all_gatherv(remotes, comm);

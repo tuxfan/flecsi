@@ -166,6 +166,7 @@ private:
       ctopo_(c.remotes), part_{{make_repartitioned<Policy, Value>(c.colors,
                            make_partial<idx_size>(c.partitions[Index]))...}},
       plan_{{make_copy_plan<Value>(c.colors,
+        c.process_colors,
         c.idx_spaces[Index],
         part_[Index],
         c.comm)...}},
@@ -179,6 +180,7 @@ private:
 
   template<index_space S>
   data::copy_plan make_copy_plan(Color colors,
+    std::vector<std::vector<Color>> const & pc,
     std::vector<process_color> const & vpc,
     repartitioned & p,
     MPI_Comm const & comm) {
@@ -193,7 +195,8 @@ private:
     auto const & fmd = forward_map_.template get<S>();
     auto const & cg = cgraph_.template get<S>();
 
-    execute<idx_itvls<NP>, mpi>(vpc,
+    execute<idx_itvls<NP>, mpi>(pc,
+      vpc,
       num_intervals,
       intervals,
       points,
