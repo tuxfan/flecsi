@@ -23,4 +23,5 @@ inline flecsi::program_option<double> error_tol("error-tolerance",
   "tolerance,t",
   "The maximum absolute residual tolerance.",
   {{flecsi::option_default, 1.0e-4}});
+
 } // namespace poisson
