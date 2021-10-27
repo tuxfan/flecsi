@@ -16,16 +16,17 @@ using namespace flecsi;
 int
 poisson::action::problem() {
   annotation::rguard<problem_region> guard;
+
   execute<task::eggcarton>(m, ud(m), fd(m), sd(m), Aud(m));
+
+  // May still need these for debugging
+#if 0
   execute<task::io, flecsi::mpi>(m, ud(m), "init");
   execute<task::io, flecsi::mpi>(m, sd(m), "actual");
-
-  // This can be used for debugging
-#if 0
   execute<task::redblack>(m, test(m));
   execute<task::print>(m, test(m));
+  flog::flush();
 #endif
 
-  flog::flush();
   return 0;
 } // problem

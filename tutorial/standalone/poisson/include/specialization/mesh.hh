@@ -103,22 +103,22 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       }
     }
 
-    template<axis A>
     auto red(std::size_t row) {
-      const bool low = B::template is_low<index_space::vertices, A>();
-      const bool high = B::template is_high<index_space::vertices, A>();
+      const bool low = B::template is_low<index_space::vertices, x_axis>();
+      const bool high = B::template is_high<index_space::vertices, x_axis>();
       const std::size_t start =
-        B::template logical<index_space::vertices, A, 0>();
+        B::template logical<index_space::vertices, x_axis, 0>();
       const std::size_t end =
-        B::template logical<index_space::vertices, A, 1>();
+        B::template logical<index_space::vertices, x_axis, 1>();
       const std::size_t rng = (end - high) - (start + low);
-      const bool parity = (0 == global_id<A>(start + low) % 2);
+      const bool parity = (0 == global_id<x_axis>(start + low) % 2);
+      const std::size_t gr = global_id<y_axis>(row);
 
       // clang-format off
       const std::size_t pts =
         (0 == rng % 2) ? // even number of red and black points
           rng / 2 :
-          parity == (0 == row % 2) ? // more red than black
+          parity == (0 == gr % 2) ? // more red than black
             (rng + 1) / 2 :
             (rng - 1) / 2; // fewer red than black
       // clang-format on
@@ -126,12 +126,11 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       return flecsi::topo::make_stride_ids<index_space::vertices, 2>(
         flecsi::util::iota_view<flecsi::util::id>(0, pts),
         start + low,
-        (row + parity) % 2);
+        (gr + parity) % 2);
     }
 
-    template<axis A>
     auto black(std::size_t row) {
-      return red<A>(row + 1);
+      return red(row + 1);
     }
 
     double xdelta() {

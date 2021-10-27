@@ -10,12 +10,10 @@
 namespace poisson {
 namespace task {
 
-void red(mesh::accessor<ro> m,
+void smooth(mesh::accessor<ro> m,
   field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa);
-void black(mesh::accessor<ro> m,
-  field<double>::accessor<rw, ro> ua,
-  field<double>::accessor<ro, ro> fa);
+  field<double>::accessor<ro, ro> fa,
+  bool red);
 
 } // namespace task
 } // namespace poisson
