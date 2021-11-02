@@ -103,6 +103,19 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       }
     }
 
+    auto rb(std::size_t row, int co) {
+      const bool low = B::template is_low<index_space::vertices, x_axis>();
+      const bool high = B::template is_high<index_space::vertices, x_axis>();
+      const std::size_t start =
+        B::template logical<index_space::vertices, x_axis, 0>();
+      const std::size_t end =
+        B::template logical<index_space::vertices, x_axis, 1>();
+      const std::size_t rng = (end - high) - (start + low);
+
+      auto const xid = global_id<x_axis>(start + low);
+      auto const yid = global_id<y_axis>(row);
+    }
+
     auto red(std::size_t row) {
       const bool low = B::template is_low<index_space::vertices, x_axis>();
       const bool high = B::template is_high<index_space::vertices, x_axis>();
@@ -113,6 +126,19 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
       const std::size_t rng = (end - high) - (start + low);
       const bool parity = (0 == global_id<x_axis>(start + low) % 2);
       const std::size_t gr = global_id<y_axis>(row);
+
+      if(row<4 && (0 == gr % 2)) {
+      flog(warn)
+        << "range: " << rng << std::endl
+        << "even range: " << (0 == rng % 2) << std::endl
+        << "global column: " << global_id<x_axis>(start + low)  << std::endl
+        << "even column: " << parity << std::endl
+        << "local row: " << row << std::endl
+        << "global row: " << gr << std::endl
+        << "even row: " << (0 == gr % 2) << std::endl
+        << "color: " << ((gr + parity) %2) << std::endl
+        ;
+      }
 
       // clang-format off
       const std::size_t pts =
@@ -130,6 +156,7 @@ struct mesh : flecsi::topo::specialization<flecsi::topo::narray, mesh> {
     }
 
     auto black(std::size_t row) {
+      if(row < 3) flog(error) << "black" << std::endl;
       return red(row + 1);
     }
 

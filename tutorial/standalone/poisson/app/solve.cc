@@ -20,6 +20,10 @@ poisson::action::solve() {
   annotation::rguard<solve_region> guard;
   double err{std::numeric_limits<double>::max()};
 
+  flog(error) << "Calling solve" << std::endl;
+  execute<task::smooth>(m, ud(m), fd(m), true);
+  execute<task::smooth>(m, ud(m), fd(m), false);
+#if 0
   std::size_t sub{100};
   std::size_t ita{0};
   do {
@@ -37,5 +41,6 @@ poisson::action::solve() {
     flog::flush();
   } while(err > error_tol.value() && ita < max_iterations.value());
 
+#endif
   return 0;
 } // solve
