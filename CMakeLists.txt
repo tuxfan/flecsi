@@ -184,14 +184,9 @@ if(NOT FORMAT_ONLY)
       ${CMAKE_SOURCE_DIR}/doc/doxygen/api-core/doxygen.conf.in
       ${CMAKE_SOURCE_DIR}/doc/doxygen/project.conf.in
   )
-  add_doxygen_target(api-spec
+  add_doxygen_target(api-user
     CONFIGS
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/api-spec/doxygen.conf.in
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/project.conf.in
-  )
-  add_doxygen_target(api-rntm
-    CONFIGS
-      ${CMAKE_SOURCE_DIR}/doc/doxygen/api-rntm/doxygen.conf.in
+      ${CMAKE_SOURCE_DIR}/doc/doxygen/api-user/doxygen.conf.in
       ${CMAKE_SOURCE_DIR}/doc/doxygen/project.conf.in
   )
 
