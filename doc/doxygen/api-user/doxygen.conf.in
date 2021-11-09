@@ -2,7 +2,7 @@
 # Values specific to this target.
 #------------------------------------------------------------------------------#
 
-PROJECT_NAME = "Runtime API"
+PROJECT_NAME = "User API"
 
 OUTPUT_DIRECTORY = @CMAKE_BINARY_DIR@/doc/sphinx/doxygen/api-user
 
@@ -22,4 +22,4 @@ WARN_LOGFILE = @CMAKE_BINARY_DIR@/api-user.out
 USE_MDFILE_AS_MAINPAGE = \
   @PROJECT_SOURCE_DIR@/doc/doxygen/api-user/mainpage.md
 
-@INCLUDE = @CMAKE_BINARY_DIR@/.doxygen/api-spec/project.conf
+@INCLUDE = @CMAKE_BINARY_DIR@/.doxygen/api-user/project.conf
